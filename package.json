@@ -1,6 +1,6 @@
 {
   "name": "marku",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Headless dynamic content extension for static blogs",
   "packageManager": "pnpm@12.23.0",
@@ -17,6 +17,7 @@
     "migrate": "pnpm --filter @marku/api migrate",
     "seed": "pnpm --filter @marku/api seed",
     "build": "pnpm -r --if-present build",
+    "build:binary": "node scripts/build-embedded.mjs",
     "lint": "pnpm -r --if-present lint",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck",

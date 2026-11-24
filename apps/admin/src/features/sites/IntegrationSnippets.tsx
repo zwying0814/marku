@@ -72,7 +72,7 @@ export async function getPageStats(path: string) {
     body: JSON.stringify({ path: location.pathname }),
   })
 </script>`,
-    embed: `<!-- 可选集成包，尚未纳入 v0.1 核心验收 -->
+    embed: `<!-- 可选集成包，尚未纳入官方发行 -->
 <script type="module" src="/marku-embed.js"></script>
 
 <marku-comments

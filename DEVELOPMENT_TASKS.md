@@ -379,7 +379,17 @@ marku/
 - CI 全绿。
 - 通过两个模拟站点的端到端验收。
 
-### M9（可选，v0.2）：集成包与主题契约
+### v0.2：单二进制发行
+
+> 状态：已完成
+
+- [x] Admin 与 Rspress Docs 构建产物复制到 Go 包内并通过 `go:embed` 嵌入。
+- [x] 根路径 `/` 提供 Admin，`/docs/` 提供 Rspress，`/swagger` 提供 Swagger UI。
+- [x] 增加 `pnpm build:binary`，自动构建前端并生成 `dist/marku-api`。
+- [x] Docker Compose 收敛为单个 API 容器。
+- [x] Release 提供包含 Admin 与 Docs 的跨平台单二进制。
+
+### M9（可选，后续版本）：集成包与主题契约
 
 - [ ] 实现 `@marku/client`：从 OpenAPI 生成类型，提供评论、浏览量、点赞、统计方法，同时支持浏览器与服务端。
 - [ ] 实现 `@marku/embed`：Web Component 形式的可选评论组件，默认 Shadow DOM。

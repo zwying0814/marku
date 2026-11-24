@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Marku API
-  version: 0.1.0
+  version: 0.2.0
   description: |
     Marku 是面向静态博客的无头动态内容 API，支持多站点隔离、评论审核、
     浏览量统计和点赞。

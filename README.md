@@ -2,7 +2,7 @@
 
 Marku 是一个面向静态博客的无头动态内容扩展平台。博客保持原有的构建与部署方式，通过公共 API 或可选官方组件接入评论、浏览量和点赞。
 
-当前完成 **M0 到 M8 的 v0.1 收口**。API 已具备管理员 JWT、站点 CRUD、Site Key 管理、多站点隔离、评论审核与楼中楼、浏览量、点赞、聚合统计、OpenAPI、共享类型、Demo seed 与 Docker 部署。Admin 已具备登录鉴权、全局看板、站点向导、Site Key 管理、数据分析和完整评论审核流程。文档站基于 Rspress，纯 HTML 示例可直接演示完整接入。Next.js 示例不纳入 v0.1。
+当前版本 **v0.2.0**。API 已具备管理员 JWT、站点 CRUD、Site Key 管理、多站点隔离、评论审核与楼中楼、浏览量、点赞、聚合统计、OpenAPI、共享类型与 Docker 部署。Admin 和 Rspress 文档站通过 `go:embed` 内置于官方二进制，单进程即可提供 API、管理后台和文档。
 
 ## 架构
 
@@ -35,7 +35,7 @@ pnpm dev
 
 - API：`http://localhost:36580`
 - Admin：`http://localhost:36581`
-- Docs：`http://localhost:36582`
+- Docs：`http://localhost:36582/docs/`
 - HTML 示例：`http://localhost:36583`
 - 健康检查：`http://localhost:36580/healthz`
 - 数据库就绪检查：`http://localhost:36580/readyz`
@@ -46,9 +46,9 @@ pnpm dev
 
 ```mermaid
 flowchart LR
-    Blog[Static Blog / Browser] -->|X-Site-Key| API[Marku API]
+    Browser[Browser / Static Blog] -->|X-Site-Key| API[Marku single binary]
     Admin[Admin SPA] -->|JWT| API
-    Docs[Rspress Docs] -.->|HTTP| API
+    API --> Assets[Embedded Admin + Docs]
     API --> DB[(SQLite / PostgreSQL / MySQL)]
 ```
 
@@ -78,6 +78,7 @@ pnpm migrate          # 执行 API 数据库迁移
 pnpm seed             # 写入演示站点、评论、浏览量和点赞
 pnpm generate:types   # 从 OpenAPI 生成共享 TypeScript 类型
 pnpm build            # 构建所有可构建的 workspace 包
+pnpm build:binary     # 构建内置 Admin/Docs 的单二进制 dist/marku-api
 pnpm lint             # Go vet（Admin 不引入前端 lint 工具）
 pnpm typecheck        # Go vet + TypeScript 类型检查
 pnpm test             # Go 测试 + Admin Vitest
@@ -93,7 +94,9 @@ pnpm --filter @marku/admin build
 
 ## 文档与演示
 
-- API 文档：`http://localhost:36580/docs`
+- Admin：`http://localhost:36580/`
+- Rspress 文档：`http://localhost:36580/docs/`
+- Swagger UI：`http://localhost:36580/swagger`
 - OpenAPI：`http://localhost:36580/openapi.yaml`
 - 共享类型：`packages/shared/src/api.d.ts`
 - 纯 HTML 接入示例：`examples/html-blog/README.md`
@@ -109,9 +112,9 @@ docker compose up -d --build
 
 默认地址：
 
-- API：`http://localhost:36580`
-- Admin：`http://localhost:36581`
-- API 文档：`http://localhost:36580/docs`
+- API / Admin / Docs：`http://localhost:36580`
+- Rspress 文档：`http://localhost:36580/docs/`
+- Swagger UI：`http://localhost:36580/swagger`
 
 SQLite 数据保存在 Docker volume `marku_marku-data`。备份示例：
 
@@ -160,12 +163,15 @@ marku/
 - M6 API 文档与容器化
 - M7 Admin 功能
 - M8 集成示例、文档与 v0.1 发布收口（Next.js 示例不纳入 v0.1）
+- v0.2.0 单二进制发行（Admin 与 Docs 内置）
 
 详细任务见 `DEVELOPMENT_TASKS.md`。
 
 ## 说明
 
 - 站点凭证统一称为 **Site Key**，它会出现在博客前端，不是 Secret。管理端使用 JWT。
+- 开发模式使用独立 Vite/Rspress 服务；`pnpm build:binary` 会把 Admin 与 Docs
+  构建产物嵌入 Go 二进制。
 - `apps/docs` 使用 Rspress 构建，产物位于 `apps/docs/doc_build`。
 - Go module path 暂定为 `marku/api`，确定正式仓库地址后统一替换。
 - Admin 前端质量门禁为 TypeScript 严格模式、Vitest 与生产构建，不引入 ESLint、Oxlint 或 Prettier。

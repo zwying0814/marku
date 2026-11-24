@@ -12,7 +12,7 @@ Marku 由三个应用组成：
 | --- | --- | --- |
 | API | `http://localhost:36580` | 公共接口与管理接口 |
 | Admin | `http://localhost:36581` | 创建站点、审核评论、查看数据 |
-| Docs | `http://localhost:36582` | 当前文档站 |
+| Docs | `http://localhost:36582/docs/` | 当前文档站 |
 
 ## 环境要求
 
@@ -58,6 +58,14 @@ pnpm dev
 ```
 
 该命令并行启动 API、Admin 和 Rspress 文档站。
+
+开发模式下 Admin 在 `36581`，Rspress 在 `36582/docs/`。官方单二进制发行版则统一为：
+
+```text
+http://localhost:36580/        Admin
+http://localhost:36580/docs/   Docs
+http://localhost:36580/swagger Swagger
+```
 
 健康检查：
 

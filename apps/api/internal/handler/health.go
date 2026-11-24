@@ -8,13 +8,14 @@ import (
 
 	"marku/api/internal/database"
 	"marku/api/internal/response"
+	"marku/api/internal/version"
 )
 
 func Health(c *gin.Context) {
 	response.OK(c, gin.H{
 		"status":  "ok",
 		"service": "marku-api",
-		"version": "0.1.0",
+		"version": version.Current,
 	})
 }
 

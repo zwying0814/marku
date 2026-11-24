@@ -3,8 +3,8 @@ name: marku
 services:
   api:
     build:
-      context: ./apps/api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/api/Dockerfile
     restart: unless-stopped
     environment:
       MARKU_ENV: production
@@ -29,19 +29,6 @@ services:
       timeout: 3s
       retries: 3
       start_period: 10s
-
-  admin:
-    build:
-      context: .
-      dockerfile: apps/admin/Dockerfile
-      args:
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:36580/api/v1}
-    restart: unless-stopped
-    ports:
-      - "${MARKU_ADMIN_PORT:-36581}:36581"
-    depends_on:
-      api:
-        condition: service_healthy
 
   postgres:
     image: postgres:17-alpine

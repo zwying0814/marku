@@ -158,7 +158,7 @@ Retry-After: 1
 开发环境可直接查看交互式 OpenAPI：
 
 ```text
-http://localhost:36580/docs
+http://localhost:36580/swagger
 http://localhost:36580/openapi.yaml
 ```
 

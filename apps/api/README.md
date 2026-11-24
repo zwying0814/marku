@@ -2,7 +2,7 @@
 
 Marku 的公共 API，基于 Go、Gin、GORM 和 SQLite。
 
-当前已完成 M1 到 M6：
+当前版本 v0.2.0：
 
 - 分层目录：`cmd`、`config`、`database`、`handler`、`middleware`、`model`、`repository`、`router`、`service`、`response`
 - 环境变量配置与启动校验
@@ -21,6 +21,7 @@ Marku 的公共 API，基于 Go、Gin、GORM 和 SQLite。
 - 点赞幂等设置/取消、访客状态查询、点赞总数与每日净变化趋势
 - 公共聚合统计接口，一次返回评论数、浏览量、点赞数和访客点赞状态
 - OpenAPI 3 文档、Swagger UI、共享 TypeScript 类型生成
+- Admin 与 Rspress Docs 通过 `go:embed` 内置，单二进制同时提供 API 和 Web UI
 - Dockerfile、Docker Compose、Demo seed 命令
 - `/healthz`、`/readyz`、优雅关闭
 
@@ -39,6 +40,14 @@ cd apps/api
 cp .env.example .env
 go run ./cmd/server
 ```
+
+构建内置 Admin/Docs 的单二进制：
+
+```bash
+pnpm build:binary
+```
+
+产物：`dist/marku-api`。
 
 默认监听 `:36580`，SQLite 数据文件写入 `apps/api/data/marku.db`。
 
@@ -210,7 +219,7 @@ curl -G http://localhost:36580/api/v1/public/stats \
 
 ## API 文档与类型
 
-- Swagger UI：`http://localhost:36580/docs`
+- Swagger UI：`http://localhost:36580/swagger`
 - OpenAPI 3：`http://localhost:36580/openapi.yaml`
 
 Swagger UI 静态资源默认从 unpkg CDN 加载；离线环境需要自行托管 `swagger-ui-dist`。
@@ -262,7 +271,9 @@ pnpm seed
 | GET | `/api/v1/public/stats` | 聚合评论数、浏览量、点赞数 |
 | GET | `/healthz` | 进程健康检查 |
 | GET | `/readyz` | 数据库就绪检查 |
-| GET | `/docs` | Swagger UI |
+| GET | `/` | 内置 Admin SPA |
+| GET | `/docs/*` | 内置 Rspress 文档 |
+| GET | `/swagger` | Swagger UI |
 | GET | `/openapi.yaml` | OpenAPI 3 文档 |
 
 所有响应使用统一结构：

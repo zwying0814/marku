@@ -12,9 +12,29 @@ import (
 	"marku/api/internal/middleware"
 	"marku/api/internal/response"
 	"marku/api/internal/service"
+	"marku/api/internal/version"
+	"marku/api/internal/webui"
 )
 
-func New(cfg config.Config, db *gorm.DB, services *service.Service) (*gin.Engine, error) {
+type Option func(*routerOptions)
+
+type routerOptions struct {
+	webUI        *webui.UI
+	disableWebUI bool
+}
+
+func WithoutWebUI() Option {
+	return func(options *routerOptions) {
+		options.disableWebUI = true
+	}
+}
+
+func New(cfg config.Config, db *gorm.DB, services *service.Service, options ...Option) (*gin.Engine, error) {
+	settings := routerOptions{}
+	for _, option := range options {
+		option(&settings)
+	}
+
 	switch cfg.Env {
 	case config.EnvProduction:
 		gin.SetMode(gin.ReleaseMode)
@@ -46,15 +66,24 @@ func New(cfg config.Config, db *gorm.DB, services *service.Service) (*gin.Engine
 	engine.GET("/healthz", handler.Health)
 	engine.GET("/readyz", handler.Ready(db))
 	engine.GET("/openapi.yaml", handler.OpenAPISpec)
-	engine.GET("/docs", handler.SwaggerUI)
-	engine.GET("/docs/", handler.SwaggerUI)
+	engine.GET("/swagger", handler.SwaggerUI)
+	engine.GET("/swagger/", handler.SwaggerUI)
+
+	var embeddedUI *webui.UI
+	if !settings.disableWebUI {
+		embeddedUI = settings.webUI
+		if embeddedUI == nil {
+			embeddedUI = webui.Default()
+		}
+		embeddedUI.Register(engine)
+	}
 
 	api := engine.Group("/api/v1")
 	api.Use(middleware.RateLimit(cfg.RateLimit))
 	api.GET("", func(c *gin.Context) {
 		response.OK(c, gin.H{
 			"service": "marku-api",
-			"version": "0.1.0",
+			"version": version.Current,
 		})
 	})
 
@@ -97,6 +126,9 @@ func New(cfg config.Config, db *gorm.DB, services *service.Service) (*gin.Engine
 	public.GET("/stats", handler.GetPublicPageStats(services))
 
 	engine.NoRoute(func(c *gin.Context) {
+		if embeddedUI != nil && embeddedUI.HandleNoRoute(c) {
+			return
+		}
 		response.Abort(c, response.New(http.StatusNotFound, response.CodeNotFound, "not found"))
 	})
 	engine.NoMethod(func(c *gin.Context) {

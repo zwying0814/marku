@@ -10,6 +10,26 @@
 - `@marku/client` 与 `@marku/embed`（v0.2 候选）
 - 评论提交幂等键
 
+## [0.2.0] - 2026-11-24
+
+### Added
+
+- 单二进制发行：Admin 与 Rspress Docs 通过 `go:embed` 内置于 API。
+- `pnpm build:binary`：自动构建前端、复制静态资源并编译 Go 二进制。
+- 单容器 Docker 构建：一个 `marku-api` 进程同时提供 API、Admin 和 Docs。
+
+### Changed
+
+- Admin 移至根路径 `/`，Rspress Docs 使用 `/docs/`。
+- Swagger UI 从 `/docs` 迁移到 `/swagger`。
+- Docker Compose 移除独立 Admin 服务，仅保留 API 服务。
+- 内置 Admin 与 API 同源，不再需要跨域配置。
+- 版本升级至 `0.2.0`。
+
+### Notes
+
+- 静态资源仍可独立构建和部署，但官方 Release 以单二进制为主。
+
 ## [0.1.0] - 2026-11-24
 
 ### Added

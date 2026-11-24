@@ -32,7 +32,7 @@ features:
     details: 文章本身仍是静态 HTML。互动模块失败时不影响阅读与 SEO。
   - icon: 🚀
     title: 自部署
-    details: 默认 SQLite 零依赖启动，也支持 PostgreSQL、MySQL 与 Docker Compose。
+    details: 单个二进制内置 API、Admin 与 Docs；默认 SQLite，也支持 PostgreSQL、MySQL。
 ---
 
 ## 一条很薄的动态层

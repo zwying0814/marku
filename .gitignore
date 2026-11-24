@@ -10,6 +10,10 @@ coverage/
 *.tsbuildinfo
 apps/api/bin/
 apps/docs/doc_build/
+apps/api/internal/webui/admin-dist/*
+!apps/api/internal/webui/admin-dist/.gitkeep
+apps/api/internal/webui/docs-dist/*
+!apps/api/internal/webui/docs-dist/.gitkeep
 
 # Go
 apps/api/data/*.db

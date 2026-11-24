@@ -8,6 +8,7 @@ export default defineConfig({
   title: 'Marku',
   description: '面向静态博客的无头动态内容 API',
   lang: 'zh',
+  base: '/docs/',
   sitemap: false,
   logo: '/marku.svg',
   logoText: 'Marku',
@@ -76,14 +77,14 @@ export default defineConfig({
             { text: 'Docker Compose', link: '/deploy/docker' },
             { text: '反向代理与 HTTPS', link: '/deploy/reverse-proxy' },
             { text: '备份与恢复', link: '/deploy/backup' },
-            { text: 'v0.1 发布检查', link: '/deploy/release' },
+            { text: 'v0.2 发布检查', link: '/deploy/release' },
           ],
         },
       ],
     },
     footer: {
       message:
-        'Marku · Headless dynamic content for static blogs · v0.1.0',
+        'Marku · Headless dynamic content for static blogs · v0.2.0',
     },
   },
 })

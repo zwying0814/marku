@@ -1,36 +1,32 @@
 ---
 title: 反向代理与 HTTPS
-description: Nginx、可信代理、CORS、安全头和静态站点部署。
+description: Nginx、可信代理、CORS 与单域名单二进制部署。
 outline: [2, 3]
 ---
 
 # 反向代理与 HTTPS
 
-## API 域名
+## 单域名部署
 
-推荐独立域名：
+官方二进制同时提供 Admin、Docs、Swagger 与 API，推荐使用一个管理域名：
 
 ```text
-https://api.example.com
+https://marku.example.com
 ```
 
 Nginx 示例：
 
 ```nginx
-limit_req_zone $binary_remote_addr zone=marku_api:10m rate=20r/s;
-
 server {
     listen 443 ssl http2;
-    server_name api.example.com;
+    server_name marku.example.com;
 
-    ssl_certificate     /etc/letsencrypt/live/api.example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/api.example.com/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/marku.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/marku.example.com/privkey.pem;
 
     client_max_body_size 1m;
 
     location / {
-        limit_req zone=marku_api burst=40 nodelay;
-
         proxy_pass http://127.0.0.1:36580;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
@@ -40,6 +36,15 @@ server {
         proxy_read_timeout 30s;
     }
 }
+```
+
+路由由 Marku 自身处理：
+
+```text
+/          Admin
+/docs/     Rspress
+/swagger    Swagger UI
+/api/v1/*  API
 ```
 
 ## 可信代理
@@ -59,66 +64,25 @@ Docker 网络中可以填写具体网关或子网，但不要使用 `*`。
 
 ## CORS
 
-Admin 域名：
-
-```dotenv
-MARKU_CORS_ALLOWED_ORIGINS=https://admin.example.com
-```
-
-公共 API 路径按设计允许跨域读取。站点写请求还会根据站点 `allowedOrigins`
-校验来源，因此仍需在每个站点里配置：
+Admin 与 API 同源，不需要为 Admin 配置 CORS。静态博客从自己的域名调用公共
+API 时，公共路径按设计允许跨域读取；站点写请求仍根据每个站点的
+`allowedOrigins` 校验来源：
 
 ```text
 https://blog.example.com
 ```
 
-## Admin 静态站点
+## Admin 访问控制
 
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name admin.example.com;
-
-    root /var/www/marku-admin;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    location /assets/ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-}
-```
-
-Admin 建议额外增加：
+内置 Admin 位于站点根路径。建议在反向代理或网关层增加：
 
 - IP allowlist
 - VPN
 - HTTP Basic Auth
 - SSO / Access Proxy
 
-公共博客不需要访问 Admin 域名。
-
-## 文档站
-
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name docs.example.com;
-
-    root /var/www/marku-docs;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
-将 `apps/docs/doc_build` 的内容部署到 `root`。
+如果无法保护整个域名，也可以继续使用 `apps/admin/Dockerfile` 或
+`apps/admin/dist` 单独部署 Admin，并通过 `VITE_API_BASE_URL` 指向 API。
 
 ## HTTPS 要求
 

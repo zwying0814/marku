@@ -255,7 +255,7 @@ func newTestApp(t *testing.T, mutate func(*config.Config)) (*gin.Engine, *gorm.D
 
 	store := repository.New(db)
 	services := service.New(store, cfg)
-	engine, err := New(cfg, db, services)
+	engine, err := New(cfg, db, services, WithoutWebUI())
 	if err != nil {
 		t.Fatalf("build router: %v", err)
 	}

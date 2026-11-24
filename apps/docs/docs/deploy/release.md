@@ -1,10 +1,10 @@
 ---
-title: v0.1 发布检查
+title: v0.2 发布检查
 description: 发布前验证、部署步骤与回滚预案。
 outline: [2, 3]
 ---
 
-# v0.1 发布检查
+# v0.2 发布检查
 
 ## 发布前
 
@@ -15,6 +15,7 @@ outline: [2, 3]
 - [ ] `pnpm typecheck` 通过。
 - [ ] `pnpm test` 通过。
 - [ ] `pnpm build` 通过。
+- [ ] `pnpm build:binary` 通过。
 - [ ] Rspress 文档构建通过。
 - [ ] 纯 HTML 示例脚本通过 `node --check`。
 - [ ] OpenAPI 与共享类型已重新生成且无差异。
@@ -27,7 +28,7 @@ outline: [2, 3]
 - [ ] `MARKU_IP_HASH_SALT` 已设置。
 - [ ] 管理员初始密码为强密码。
 - [ ] 管理端已加 IP allowlist、VPN 或 Basic Auth。
-- [ ] Admin 与 API 使用 HTTPS。
+- [ ] Admin、Docs 与 API 使用 HTTPS。
 - [ ] 每个站点都配置了正式 `allowedOrigins`。
 - [ ] 反向代理 IP 已加入 `MARKU_HTTP_TRUSTED_PROXIES`。
 
@@ -62,11 +63,14 @@ pnpm install --frozen-lockfile
 pnpm typecheck
 pnpm test
 pnpm build
-pnpm --filter @marku/docs build
+pnpm build:binary
 
 docker compose build
 docker compose up -d
 curl -f https://api.example.com/readyz
+curl -f https://marku.example.com/
+curl -f https://marku.example.com/docs/
+curl -f https://marku.example.com/swagger
 ```
 
 ## 回滚
@@ -79,7 +83,7 @@ curl -f https://api.example.com/readyz
 
 ## 版本
 
-当前版本：`0.1.0`
+当前版本：`0.2.0`
 
 发布后更新：
 

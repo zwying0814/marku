@@ -1,12 +1,31 @@
+FROM node:24-alpine AS web-build
+
+RUN corepack enable && corepack prepare pnpm@12.23.0 --activate
+
+WORKDIR /repo
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY apps/admin/package.json apps/admin/package.json
+COPY apps/docs/package.json apps/docs/package.json
+COPY packages/shared/package.json packages/shared/package.json
+RUN pnpm install --frozen-lockfile --filter @marku/admin --filter @marku/docs
+
+COPY packages/shared packages/shared
+COPY apps/admin apps/admin
+COPY apps/docs apps/docs
+RUN pnpm --filter @marku/admin build && pnpm --filter @marku/docs build
+
 FROM golang:1.27-alpine AS build
 
 WORKDIR /src
 RUN apk add --no-cache ca-certificates
 
-COPY go.mod go.sum ./
+COPY apps/api/go.mod apps/api/go.sum ./
 RUN go mod download
 
-COPY . .
+COPY apps/api ./
+COPY --from=web-build /repo/apps/admin/dist ./internal/webui/admin-dist
+COPY --from=web-build /repo/apps/docs/doc_build ./internal/webui/docs-dist
+
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/marku-api ./cmd/server
 
 FROM alpine:3.22

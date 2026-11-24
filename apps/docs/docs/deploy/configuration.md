@@ -14,7 +14,6 @@ MARKU_JWT_SECRET=至少32位随机字符串
 MARKU_ADMIN_EMAIL=admin@example.com
 MARKU_ADMIN_PASSWORD=首次启动使用的强密码
 MARKU_IP_HASH_SALT=用于评论IP哈希的随机字符串
-MARKU_CORS_ALLOWED_ORIGINS=https://admin.example.com
 ```
 
 生产环境规则：
@@ -89,12 +88,13 @@ pnpm migrate
 ## CORS 与站点来源
 
 ```dotenv
-MARKU_CORS_ALLOWED_ORIGINS=https://admin.example.com
+MARKU_CORS_ALLOWED_ORIGINS=
 ```
 
 注意：
 
-- 管理端跨域请求受全局 CORS 列表限制。
+- 官方二进制中 Admin 与 API 同源，不需要额外 CORS 配置。
+- 只有当管理端从其他域名访问管理 API 时，才需要加入全局 CORS。
 - 公共路径按设计允许跨域读取，仍必须提供有效 Site Key。
 - 公共写请求会进一步校验站点自己的 `allowedOrigins`。
 - 生产环境应为每个站点配置正式博客 origin，而不是留空。

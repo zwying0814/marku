@@ -1,0 +1,26 @@
+{
+  "name": "marku",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Headless dynamic content extension for static blogs",
+  "packageManager": "pnpm@12.23.0",
+  "engines": {
+    "node": ">=24 <25",
+    "pnpm": ">=12"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @marku/api --filter @marku/admin --filter @marku/docs dev",
+    "dev:api": "pnpm --filter @marku/api dev",
+    "dev:admin": "pnpm --filter @marku/admin dev",
+    "dev:docs": "pnpm --filter @marku/docs dev",
+    "dev:html-example": "pnpm --filter @marku/example-html-blog dev",
+    "migrate": "pnpm --filter @marku/api migrate",
+    "seed": "pnpm --filter @marku/api seed",
+    "build": "pnpm -r --if-present build",
+    "lint": "pnpm -r --if-present lint",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "format": "pnpm --filter @marku/api format",
+    "generate:types": "pnpm --filter @marku/shared generate"
+  }
+}

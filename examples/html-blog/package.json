@@ -1,0 +1,11 @@
+{
+  "name": "@marku/example-html-blog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pure HTML, CSS and JavaScript integration example for Marku",
+  "scripts": {
+    "dev": "node server.mjs",
+    "preview": "node server.mjs"
+  }
+}

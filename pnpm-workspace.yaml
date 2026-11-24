@@ -1,0 +1,11 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "examples/*"
+
+minimumReleaseAgeExclude:
+  - lucide-react@1.78.0
+
+onlyBuiltDependencies:
+  - esbuild
+  - "@tailwindcss/oxide"

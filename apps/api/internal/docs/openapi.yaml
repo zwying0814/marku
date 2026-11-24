@@ -1,0 +1,1470 @@
+openapi: 3.0.3
+info:
+  title: Marku API
+  version: 0.1.0
+  description: |
+    Marku 是面向静态博客的无头动态内容 API，支持多站点隔离、评论审核、
+    浏览量统计和点赞。
+servers:
+  - url: http://localhost:36580
+    description: Local development
+tags:
+  - name: Health
+  - name: Admin Auth
+  - name: Admin Sites
+  - name: Admin Comments
+  - name: Admin Stats
+  - name: Public
+components:
+  securitySchemes:
+    SiteKey:
+      type: apiKey
+      in: header
+      name: X-Site-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    SiteID:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: uint64
+    CommentID:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: uint64
+    PathQuery:
+      name: path
+      in: query
+      required: true
+      schema:
+        type: string
+        example: /posts/hello
+    OptionalPathQuery:
+      name: path
+      in: query
+      required: false
+      schema:
+        type: string
+        example: /posts/hello
+    PathsQuery:
+      name: paths
+      in: query
+      required: true
+      description: 逗号分隔的页面路径。
+      schema:
+        type: string
+        example: /posts/hello,/about
+    VisitorIDQuery:
+      name: visitorId
+      in: query
+      required: false
+      schema:
+        type: string
+        maxLength: 128
+    PageQuery:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSizeQuery:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    SortQuery:
+      name: sort
+      in: query
+      schema:
+        type: string
+        enum: [asc, desc]
+    SearchQuery:
+      name: q
+      in: query
+      schema:
+        type: string
+    FromQuery:
+      name: from
+      in: query
+      description: 起始日期（含），格式 YYYY-MM-DD。
+      schema:
+        type: string
+        format: date
+    ToQuery:
+      name: to
+      in: query
+      description: 结束日期（含），格式 YYYY-MM-DD。
+      schema:
+        type: string
+        format: date
+    StatusQuery:
+      name: status
+      in: query
+      schema:
+        type: string
+        enum: [pending, approved, rejected, spam]
+    RangeQuery:
+      name: range
+      in: query
+      schema:
+        type: string
+        default: 7d
+        example: 30d
+    LimitQuery:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 10
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Unauthorized:
+      description: Authentication required or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Forbidden:
+      description: Disabled or not allowed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Conflict:
+      description: Duplicate or conflicting resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    TooManyRequests:
+      description: Rate limited
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  schemas:
+    EnvelopeBase:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: ok
+    ErrorEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopeBase'
+        - type: object
+          properties:
+            data:
+              nullable: true
+    Admin:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint64
+        email:
+          type: string
+          format: email
+        nickname:
+          type: string
+        status:
+          type: string
+          enum: [active, disabled]
+        lastLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        admin:
+          $ref: '#/components/schemas/Admin'
+    ChangePasswordRequest:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
+    Site:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint64
+        name:
+          type: string
+        slug:
+          type: string
+        domain:
+          type: string
+        status:
+          type: string
+          enum: [active, disabled]
+        siteKeyPrefix:
+          type: string
+        allowedOrigins:
+          type: array
+          items:
+            type: string
+        commentModeration:
+          type: string
+          enum: [pending, approved]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    SiteWithKey:
+      allOf:
+        - $ref: '#/components/schemas/Site'
+        - type: object
+          properties:
+            siteKey:
+              type: string
+    CreateSiteRequest:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+        domain:
+          type: string
+          maxLength: 255
+        allowedOrigins:
+          type: array
+          items:
+            type: string
+            format: uri
+        commentModeration:
+          type: string
+          enum: [pending, approved]
+          default: pending
+    UpdateSiteRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        domain:
+          type: string
+          maxLength: 255
+        status:
+          type: string
+          enum: [active, disabled]
+        allowedOrigins:
+          type: array
+          items:
+            type: string
+            format: uri
+        commentModeration:
+          type: string
+          enum: [pending, approved]
+    SiteList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Site'
+        total:
+          type: integer
+          format: int64
+        page:
+          type: integer
+        pageSize:
+          type: integer
+    AdminComment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint64
+        siteId:
+          type: integer
+          format: uint64
+        path:
+          type: string
+        parentId:
+          type: integer
+          format: uint64
+          nullable: true
+        authorName:
+          type: string
+        authorEmail:
+          type: string
+        authorWebsite:
+          type: string
+        content:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected, spam]
+        isAdmin:
+          type: boolean
+        ipHash:
+          type: string
+        userAgent:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PublicComment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint64
+        parentId:
+          type: integer
+          format: uint64
+          nullable: true
+        authorName:
+          type: string
+        authorWebsite:
+          type: string
+        content:
+          type: string
+        isAdmin:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        replies:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicComment'
+    PublicCommentPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicComment'
+        total:
+          type: integer
+          format: int64
+        page:
+          type: integer
+        pageSize:
+          type: integer
+    AdminCommentPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminComment'
+        total:
+          type: integer
+          format: int64
+        page:
+          type: integer
+        pageSize:
+          type: integer
+    CreateCommentRequest:
+      type: object
+      required: [path, authorName, content]
+      properties:
+        path:
+          type: string
+          example: /posts/hello
+        parentId:
+          type: integer
+          format: uint64
+          nullable: true
+        authorName:
+          type: string
+          maxLength: 100
+        authorEmail:
+          type: string
+          format: email
+          maxLength: 255
+        authorWebsite:
+          type: string
+          format: uri
+          maxLength: 255
+        content:
+          type: string
+          maxLength: 2000
+        honeypot:
+          type: string
+          description: 必须为空。
+        formStartedAt:
+          type: integer
+          format: int64
+          description: 评论表单开始时间，Unix 毫秒。
+    CommentSubmitResult:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint64
+        status:
+          type: string
+          enum: [pending, approved]
+        createdAt:
+          type: string
+          format: date-time
+    UpdateCommentRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, approved, rejected, spam]
+    ReplyCommentRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          maxLength: 2000
+    BulkCommentRequest:
+      type: object
+      required: [ids, action]
+      properties:
+        ids:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            type: integer
+            format: uint64
+        action:
+          type: string
+          enum: [approve, reject, spam, delete]
+    UpdatedResult:
+      type: object
+      properties:
+        updated:
+          type: integer
+          format: int64
+    PageViewItem:
+      type: object
+      properties:
+        path:
+          type: string
+        views:
+          type: integer
+          format: uint64
+        uniqueViews:
+          type: integer
+          format: uint64
+    PageViewList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageViewItem'
+    RecordViewRequest:
+      type: object
+      required: [path]
+      properties:
+        path:
+          type: string
+        visitorId:
+          type: string
+          maxLength: 128
+    RecordViewResult:
+      type: object
+      properties:
+        views:
+          type: integer
+          format: uint64
+        uniqueViews:
+          type: integer
+          format: uint64
+        recorded:
+          type: boolean
+    LikeRequest:
+      type: object
+      required: [path, visitorId]
+      properties:
+        path:
+          type: string
+        visitorId:
+          type: string
+          maxLength: 128
+    LikeState:
+      type: object
+      properties:
+        likes:
+          type: integer
+          format: uint64
+        liked:
+          type: boolean
+    ViewTrendPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        views:
+          type: integer
+          format: uint64
+        uniqueViews:
+          type: integer
+          format: uint64
+    SiteViewStats:
+      type: object
+      properties:
+        totalViews:
+          type: integer
+          format: uint64
+        totalUniqueViews:
+          type: integer
+          format: uint64
+        topPages:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageViewItem'
+        trend:
+          type: array
+          items:
+            $ref: '#/components/schemas/ViewTrendPoint'
+    LikePageItem:
+      type: object
+      properties:
+        path:
+          type: string
+        likes:
+          type: integer
+          format: uint64
+    LikeTrendPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        likes:
+          type: integer
+          format: uint64
+        unlikes:
+          type: integer
+          format: uint64
+        net:
+          type: integer
+          format: int64
+    SiteLikeStats:
+      type: object
+      properties:
+        path:
+          type: string
+        totalLikes:
+          type: integer
+          format: uint64
+        topPages:
+          type: array
+          items:
+            $ref: '#/components/schemas/LikePageItem'
+        trend:
+          type: array
+          items:
+            $ref: '#/components/schemas/LikeTrendPoint'
+    OverviewTrendPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        views:
+          type: integer
+          format: uint64
+        likes:
+          type: integer
+          format: uint64
+        unlikes:
+          type: integer
+          format: uint64
+        netLikes:
+          type: integer
+          format: int64
+    AdminOverview:
+      type: object
+      properties:
+        sites:
+          type: integer
+          format: int64
+        comments:
+          type: integer
+          format: int64
+        pendingComments:
+          type: integer
+          format: int64
+        views:
+          type: integer
+          format: uint64
+        likes:
+          type: integer
+          format: uint64
+        trend:
+          type: array
+          items:
+            $ref: '#/components/schemas/OverviewTrendPoint'
+    CommentTrendPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        comments:
+          type: integer
+          format: int64
+        pending:
+          type: integer
+          format: int64
+    SiteCommentStats:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+        pending:
+          type: integer
+          format: int64
+        approved:
+          type: integer
+          format: int64
+        trend:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommentTrendPoint'
+    PublicSite:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint64
+        name:
+          type: string
+        slug:
+          type: string
+        domain:
+          type: string
+        commentModeration:
+          type: string
+          enum: [pending, approved]
+    PublicPageStats:
+      type: object
+      properties:
+        path:
+          type: string
+        comments:
+          type: integer
+          format: int64
+        views:
+          type: integer
+          format: uint64
+        uniqueViews:
+          type: integer
+          format: uint64
+        likes:
+          type: integer
+          format: uint64
+        liked:
+          type: boolean
+    PublicStatsList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicPageStats'
+    CountResult:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int64
+paths:
+  /healthz:
+    get:
+      tags: [Health]
+      summary: Process health
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+  /readyz:
+    get:
+      tags: [Health]
+      summary: Database readiness
+      responses:
+        '200':
+          description: Ready
+        '503':
+          $ref: '#/components/responses/InternalError'
+  /api/v1:
+    get:
+      tags: [Health]
+      summary: Service information
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/auth/login:
+    post:
+      tags: [Admin Auth]
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /api/v1/admin/auth/me:
+    get:
+      tags: [Admin Auth]
+      summary: Current admin
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Admin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v1/admin/auth/change-password:
+    post:
+      tags: [Admin Auth]
+      summary: Change password
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '204':
+          description: Password changed
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/admin/overview:
+    get:
+      tags: [Admin Stats]
+      summary: Global admin overview
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RangeQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AdminOverview'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/admin/sites:
+    get:
+      tags: [Admin Sites]
+      summary: List sites
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+        - $ref: '#/components/parameters/SearchQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SiteList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Admin Sites]
+      summary: Create site
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSiteRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SiteWithKey'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/admin/sites/{id}:
+    parameters:
+      - $ref: '#/components/parameters/SiteID'
+    get:
+      tags: [Admin Sites]
+      summary: Get site
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Site'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Admin Sites]
+      summary: Update site
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSiteRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Site'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Admin Sites]
+      summary: Soft delete site
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/admin/sites/{id}/rotate-key:
+    parameters:
+      - $ref: '#/components/parameters/SiteID'
+    post:
+      tags: [Admin Sites]
+      summary: Rotate Site Key
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SiteWithKey'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/admin/sites/{id}/key:
+    parameters:
+      - $ref: '#/components/parameters/SiteID'
+    delete:
+      tags: [Admin Sites]
+      summary: Revoke Site Key
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Revoked
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/admin/sites/{id}/comments:
+    parameters:
+      - $ref: '#/components/parameters/SiteID'
+    get:
+      tags: [Admin Comments]
+      summary: List comments
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StatusQuery'
+        - $ref: '#/components/parameters/OptionalPathQuery'
+        - $ref: '#/components/parameters/SearchQuery'
+        - $ref: '#/components/parameters/FromQuery'
+        - $ref: '#/components/parameters/ToQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+        - $ref: '#/components/parameters/SortQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AdminCommentPage'
+  /api/v1/admin/sites/{id}/comments/bulk:
+    parameters:
+      - $ref: '#/components/parameters/SiteID'
+    post:
+      tags: [Admin Comments]
+      summary: Bulk comment action
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkCommentRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UpdatedResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/v1/admin/sites/{id}/comments/stats:
+    parameters:
+      - $ref: '#/components/parameters/SiteID'
+    get:
+      tags: [Admin Stats]
+      summary: Site comment stats
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RangeQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SiteCommentStats'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/admin/sites/{id}/stats:
+    parameters:
+      - $ref: '#/components/parameters/SiteID'
+    get:
+      tags: [Admin Stats]
+      summary: Site view stats
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RangeQuery'
+        - $ref: '#/components/parameters/LimitQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SiteViewStats'
+  /api/v1/admin/sites/{id}/likes:
+    parameters:
+      - $ref: '#/components/parameters/SiteID'
+    get:
+      tags: [Admin Stats]
+      summary: Site like stats
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RangeQuery'
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OptionalPathQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SiteLikeStats'
+  /api/v1/admin/comments/{id}:
+    parameters:
+      - $ref: '#/components/parameters/CommentID'
+    patch:
+      tags: [Admin Comments]
+      summary: Update comment status
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCommentRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AdminComment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Admin Comments]
+      summary: Delete comment
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/admin/comments/{id}/reply:
+    parameters:
+      - $ref: '#/components/parameters/CommentID'
+    post:
+      tags: [Admin Comments]
+      summary: Admin reply
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReplyCommentRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AdminComment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/public/site:
+    get:
+      tags: [Public]
+      summary: Public site config
+      security:
+        - SiteKey: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PublicSite'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v1/public/comments:
+    get:
+      tags: [Public]
+      summary: List approved comments
+      security:
+        - SiteKey: []
+      parameters:
+        - $ref: '#/components/parameters/PathQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+        - $ref: '#/components/parameters/SortQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PublicCommentPage'
+    post:
+      tags: [Public]
+      summary: Submit comment
+      security:
+        - SiteKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CommentSubmitResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /api/v1/public/comments/count:
+    get:
+      tags: [Public]
+      summary: Approved comment count
+      security:
+        - SiteKey: []
+      parameters:
+        - $ref: '#/components/parameters/PathQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CountResult'
+  /api/v1/public/views:
+    get:
+      tags: [Public]
+      summary: Batch page views
+      security:
+        - SiteKey: []
+      parameters:
+        - $ref: '#/components/parameters/PathsQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PageViewList'
+    post:
+      tags: [Public]
+      summary: Record page view
+      security:
+        - SiteKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordViewRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RecordViewResult'
+  /api/v1/public/likes:
+    get:
+      tags: [Public]
+      summary: Like state
+      security:
+        - SiteKey: []
+      parameters:
+        - $ref: '#/components/parameters/PathQuery'
+        - $ref: '#/components/parameters/VisitorIDQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LikeState'
+    post:
+      tags: [Public]
+      summary: Toggle like
+      security:
+        - SiteKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LikeRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LikeState'
+    put:
+      tags: [Public]
+      summary: Like (idempotent)
+      security:
+        - SiteKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LikeRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LikeState'
+    delete:
+      tags: [Public]
+      summary: Unlike (idempotent)
+      security:
+        - SiteKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LikeRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LikeState'
+  /api/v1/public/stats:
+    get:
+      tags: [Public]
+      summary: Aggregate page stats
+      security:
+        - SiteKey: []
+      parameters:
+        - $ref: '#/components/parameters/PathsQuery'
+        - $ref: '#/components/parameters/VisitorIDQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PublicStatsList'
+        '400':
+          $ref: '#/components/responses/BadRequest'

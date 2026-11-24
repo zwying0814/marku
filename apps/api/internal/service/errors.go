@@ -1,0 +1,28 @@
+package service
+
+import "errors"
+
+var (
+	ErrInvalidCredentials     = errors.New("invalid email or password")
+	ErrAuthNotConfigured      = errors.New("authentication is not configured")
+	ErrAdminDisabled          = errors.New("admin account is disabled")
+	ErrInvalidToken           = errors.New("invalid or expired token")
+	ErrInvalidCurrentPassword = errors.New("current password is incorrect")
+	ErrWeakPassword           = errors.New("new password must be at least 8 characters")
+	ErrSiteNotFound           = errors.New("site not found")
+	ErrSlugExists             = errors.New("site slug already exists")
+	ErrInvalidSiteInput       = errors.New("invalid site input")
+	ErrInvalidSiteKey         = errors.New("invalid site key")
+	ErrSiteDisabled           = errors.New("site is disabled")
+	ErrCommentNotFound        = errors.New("comment not found")
+	ErrInvalidCommentInput    = errors.New("invalid comment input")
+	ErrCommentTooFast         = errors.New("comment submitted too quickly")
+	ErrCommentRateLimited     = errors.New("comment rate limit exceeded")
+	ErrDuplicateComment       = errors.New("duplicate comment")
+	ErrInvalidParent          = errors.New("invalid parent comment")
+	ErrCommentDepthExceeded   = errors.New("comment depth exceeded")
+	ErrInvalidCommentAction   = errors.New("invalid comment action")
+	ErrInvalidPagePath        = errors.New("invalid page path")
+	ErrInvalidViewInput       = errors.New("invalid view input")
+	ErrInvalidLikeInput       = errors.New("invalid like input")
+)

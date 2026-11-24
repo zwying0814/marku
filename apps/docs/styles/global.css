@@ -1,0 +1,26 @@
+:root {
+  --rp-c-brand: #4f46e5;
+  --rp-c-brand-light: #6366f1;
+  --rp-c-brand-lighter: #e0e7ff;
+  --rp-c-brand-dark: #4338ca;
+  --rp-c-brand-darker: #3730a3;
+  --rp-c-brand-tint: rgb(79 70 229 / 0.1);
+}
+
+.dark {
+  --rp-c-brand: #818cf8;
+  --rp-c-brand-light: #a5b4fc;
+  --rp-c-brand-lighter: #312e81;
+  --rp-c-brand-dark: #6366f1;
+  --rp-c-brand-darker: #4f46e5;
+  --rp-c-brand-tint: rgb(129 140 248 / 0.12);
+}
+
+.rspress-doc :not(pre) > code {
+  font-weight: 500;
+}
+
+.rspress-doc table {
+  display: table;
+  width: 100%;
+}

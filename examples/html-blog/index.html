@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Marku 纯 HTML 接入示例：给静态博客增加评论、浏览量和点赞。"
+    />
+    <meta name="theme-color" content="#f6f1e8" />
+    <meta name="marku:path" content="" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link
+      rel="canonical"
+      href="/posts/static-blogs-dynamic-content"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+    <title>静态博客，也能拥有真实发生的对话 · Marku Example</title>
+  </head>
+  <body>
+    <div class="page-grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="纸上之间首页">
+        <span class="brand-mark">纸</span>
+        <span>
+          <strong>纸上之间</strong>
+          <small>Notes on the web</small>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="站点导航">
+        <a href="#article">文章</a>
+        <a href="#comments">讨论</a>
+        <a href="https://github.com/" target="_blank" rel="noreferrer">关于</a>
+      </nav>
+      <div class="api-state" id="api-state" data-state="loading">
+        <span class="api-state-dot" aria-hidden="true"></span>
+        <span class="api-state-text" id="api-state-text">正在连接 Marku…</span>
+      </div>
+    </header>
+
+    <main>
+      <article id="article">
+        <header class="article-header">
+          <div class="eyebrow-row">
+            <span class="eyebrow">Build notes</span>
+            <span class="eyebrow-separator" aria-hidden="true"></span>
+            <time datetime="2026-11-24">2026 年 11 月 24 日</time>
+          </div>
+          <h1>静态博客，<br />也能拥有真实发生的对话。</h1>
+          <p class="article-deck">
+            不迁移框架，不重做发布流程。只增加一个很小的 API 层，
+            让已经生成的页面继续拥有评论、阅读量与点赞。
+          </p>
+          <div class="article-meta">
+            <div class="author">
+              <span class="author-avatar">林</span>
+              <span>
+                <strong>林默</strong>
+                <small>独立开发者 · 6 分钟阅读</small>
+              </span>
+            </div>
+            <div class="path-chip" title="Marku 使用的 canonical path">
+              <span>path</span>
+              <code id="article-path">/posts/static-blogs-dynamic-content</code>
+            </div>
+          </div>
+        </header>
+
+        <div class="article-body">
+          <p class="lead">
+            静态站点最好的部分，是它几乎不需要维护：文件生成之后，CDN
+            会替你处理剩下的事情。但它最可惜的部分，也常常是同一件事——
+            页面发布那一刻，交流就停止了。
+          </p>
+
+          <p>
+            评论、浏览量和点赞并不需要把整站变成动态应用。它们可以像一层薄薄的
+            插件，挂在现有页面旁边。页面依旧是静态的，SEO
+            和首屏性能不受影响；动态数据按需加载，失败时也不会破坏文章本身。
+          </p>
+
+          <blockquote>
+            <p>
+              “让静态内容保持静态，让变化的部分独立变化。”
+            </p>
+          </blockquote>
+
+          <h2>一次请求，只负责一件事</h2>
+          <p>
+            评论接口负责读写讨论，浏览量接口记录页面访问，点赞接口维护访客与页面之间
+            的关系。每一个能力都可以单独接入，也可以按需组合。页面路径是三者共同的
+            关联键，因此 canonical path 必须保持稳定。
+          </p>
+
+          <div class="callout">
+            <span class="callout-index">01</span>
+            <p>
+              如果同一篇文章可以通过多个 URL 访问，应显式指定 canonical path，
+              不要把查询参数、锚点或预览域名带进统计数据。
+            </p>
+          </div>
+
+          <h2>失败不应该影响阅读</h2>
+          <p>
+            API 超时、评论审核中、请求过于频繁，这些都属于页面之外的次要状态。
+            示例把这些反馈放在局部区域里：文章照常可读，只有互动模块显示重试或提示。
+          </p>
+
+          <p>
+            这个页面就是一个可以直接查看的答案：纯 HTML、CSS 和 JavaScript，
+            没有框架，也没有构建步骤。
+          </p>
+        </div>
+
+        <aside class="article-actions" aria-label="文章互动">
+          <div class="stat-strip">
+            <div class="stat">
+              <span class="stat-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                  <circle cx="12" cy="12" r="2.5" />
+                </svg>
+              </span>
+              <span>
+                <strong id="view-count">—</strong>
+                <small>浏览</small>
+              </span>
+            </div>
+            <div class="stat">
+              <span class="stat-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M20 11.5a7.5 7.5 0 0 1-11.2 6.6L4 19.5l1.4-4.7A7.5 7.5 0 1 1 20 11.5Z" />
+                </svg>
+              </span>
+              <span>
+                <strong id="comment-count">—</strong>
+                <small>评论</small>
+              </span>
+            </div>
+            <div class="stat">
+              <span class="stat-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 20.5s-8-4.7-8-10.2A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 8 3.3c0 5.5-8 10.2-8 10.2Z" />
+                </svg>
+              </span>
+              <span>
+                <strong id="like-count">—</strong>
+                <small>点赞</small>
+              </span>
+            </div>
+          </div>
+
+          <button class="like-button" id="like-button" type="button" disabled>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 20.5s-8-4.7-8-10.2A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 8 3.3c0 5.5-8 10.2-8 10.2Z" />
+            </svg>
+            <span id="like-button-label">点赞这篇文章</span>
+          </button>
+        </aside>
+      </article>
+
+      <section class="discussion" id="comments">
+        <div class="discussion-heading">
+          <div>
+            <p class="eyebrow">Comments</p>
+            <h2>继续这场讨论</h2>
+          </div>
+          <p>
+            评论通过 Marku 提交。若站点启用了先审后发，新评论会在管理员通过后出现。
+          </p>
+        </div>
+
+        <div class="setup-alert" id="setup-alert" hidden>
+          <div>
+            <strong>示例尚未配置 Site Key</strong>
+            <p>
+              打开 <code>config.js</code>，把
+              <code>mk_replace_with_your_site_key</code> 替换为站点详情中的
+              Site Key。API 地址与允许来源也需要匹配。
+            </p>
+          </div>
+        </div>
+
+        <div class="discussion-grid">
+          <div class="comment-column">
+            <div class="comment-toolbar">
+              <p><span id="comment-count-inline">—</span> 条已公开评论</p>
+              <button class="text-button" id="retry-comments" type="button" hidden>
+                重新加载
+              </button>
+            </div>
+
+            <div class="comment-loading" id="comment-loading">
+              <div class="skeleton skeleton-avatar"></div>
+              <div class="skeleton-lines">
+                <div class="skeleton skeleton-line short"></div>
+                <div class="skeleton skeleton-line"></div>
+                <div class="skeleton skeleton-line medium"></div>
+              </div>
+            </div>
+
+            <div class="comment-error" id="comment-error" hidden>
+              <strong>评论暂时没有加载出来</strong>
+              <p id="comment-error-message"></p>
+            </div>
+
+            <div class="comment-empty" id="comment-empty" hidden>
+              <span>✳</span>
+              <strong>还没有公开评论</strong>
+              <p>成为第一个留下想法的人。</p>
+            </div>
+
+            <div class="comment-list" id="comment-list"></div>
+          </div>
+
+          <aside class="comment-form-panel">
+            <div class="form-heading">
+              <p class="eyebrow">Leave a note</p>
+              <h3>写下你的想法</h3>
+            </div>
+
+            <div class="reply-target" id="reply-target" hidden>
+              <span>正在回复 <strong id="reply-target-name"></strong></span>
+              <button id="cancel-reply" type="button" aria-label="取消回复">
+                取消
+              </button>
+            </div>
+
+            <form id="comment-form" novalidate>
+              <div class="field-row">
+                <label class="field">
+                  <span>称呼 <em>*</em></span>
+                  <input
+                    name="authorName"
+                    type="text"
+                    maxlength="100"
+                    autocomplete="name"
+                    placeholder="怎么称呼你？"
+                    required
+                  />
+                </label>
+                <label class="field">
+                  <span>邮箱 <small>不会公开</small></span>
+                  <input
+                    name="authorEmail"
+                    type="email"
+                    maxlength="255"
+                    autocomplete="email"
+                    placeholder="you@example.com"
+                  />
+                </label>
+              </div>
+
+              <label class="field">
+                <span>网站 <small>可选</small></span>
+                <input
+                  name="authorWebsite"
+                  type="url"
+                  maxlength="255"
+                  autocomplete="url"
+                  placeholder="https://example.com"
+                />
+              </label>
+
+              <label class="field">
+                <span>评论 <em>*</em></span>
+                <textarea
+                  name="content"
+                  rows="5"
+                  maxlength="2000"
+                  placeholder="保持友善，也保持具体…"
+                  required
+                ></textarea>
+              </label>
+
+              <label class="honeypot" aria-hidden="true">
+                <span>Website</span>
+                <input
+                  name="honeypot"
+                  type="text"
+                  tabindex="-1"
+                  autocomplete="off"
+                />
+              </label>
+
+              <div class="form-footer">
+                <p class="form-status" id="form-status" role="status"></p>
+                <button class="submit-button" id="submit-comment" type="submit">
+                  <span id="submit-label">提交评论</span>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </button>
+              </div>
+            </form>
+
+            <p class="form-privacy">
+              邮箱仅用于识别评论者，不会公开显示。提交即表示你同意站点保留评论内容。
+            </p>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <strong>纸上之间</strong>
+        <p>一个静态博客，以及一层刚刚好的动态能力。</p>
+      </div>
+      <div class="footer-meta">
+        <span>Powered by static files</span>
+        <span aria-hidden="true">·</span>
+        <span>Dynamic layer by Marku</span>
+      </div>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <noscript>
+      <div class="noscript">
+        评论、浏览量和点赞需要 JavaScript。文章内容不受影响。
+      </div>
+    </noscript>
+
+    <script src="/config.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

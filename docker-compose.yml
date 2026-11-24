@@ -1,0 +1,64 @@
+name: marku
+
+services:
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      MARKU_ENV: production
+      MARKU_HTTP_ADDR: ":36580"
+      MARKU_DB_DRIVER: ${MARKU_DB_DRIVER:-sqlite}
+      MARKU_DB_DSN: ${MARKU_DB_DSN:-/data/marku.db}
+      MARKU_DB_AUTO_MIGRATE: "true"
+      MARKU_JWT_SECRET: ${MARKU_JWT_SECRET:?set MARKU_JWT_SECRET}
+      MARKU_ADMIN_EMAIL: ${MARKU_ADMIN_EMAIL:?set MARKU_ADMIN_EMAIL}
+      MARKU_ADMIN_PASSWORD: ${MARKU_ADMIN_PASSWORD:?set MARKU_ADMIN_PASSWORD}
+      MARKU_IP_HASH_SALT: ${MARKU_IP_HASH_SALT:?set MARKU_IP_HASH_SALT}
+      MARKU_CORS_ALLOWED_ORIGINS: ${MARKU_CORS_ALLOWED_ORIGINS:-http://localhost:36581}
+      MARKU_LOG_FORMAT: json
+      MARKU_VIEW_FILTER_BOTS: ${MARKU_VIEW_FILTER_BOTS:-true}
+    ports:
+      - "${MARKU_API_PORT:-36580}:36580"
+    volumes:
+      - marku-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:36580/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:36580/api/v1}
+    restart: unless-stopped
+    ports:
+      - "${MARKU_ADMIN_PORT:-36581}:36581"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-alpine
+    profiles: ["postgres"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${MARKU_POSTGRES_DB:-marku}
+      POSTGRES_USER: ${MARKU_POSTGRES_USER:-marku}
+      POSTGRES_PASSWORD: ${MARKU_POSTGRES_PASSWORD:-marku}
+    volumes:
+      - marku-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${MARKU_POSTGRES_USER:-marku} -d ${MARKU_POSTGRES_DB:-marku}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  marku-data:
+  marku-postgres:

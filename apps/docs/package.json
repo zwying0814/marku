@@ -1,0 +1,15 @@
+{
+  "name": "@marku/docs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Marku documentation site powered by Rspress",
+  "scripts": {
+    "dev": "rspress --port 36582",
+    "build": "rspress build",
+    "preview": "rspress preview --port 36582"
+  },
+  "dependencies": {
+    "@rspress/core": "^2.1.4"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "@marku/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "go run ./cmd/server",
+    "migrate": "go run ./cmd/migrate",
+    "seed": "go run ./cmd/seed",
+    "build": "go build -o bin/marku-api ./cmd/server",
+    "lint": "go vet ./...",
+    "test": "go test ./...",
+    "typecheck": "go vet ./...",
+    "format": "gofmt -w ."
+  }
+}

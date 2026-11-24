@@ -1,0 +1,12 @@
+.git
+.github
+node_modules
+**/node_modules
+**/dist
+**/bin
+**/data
+**/doc_build
+**/.rspress
+*.log
+.env
+.DS_Store

@@ -62,10 +62,10 @@ jobs:
           MARKU_DB_DSN=/tmp/marku-ci.db \
           MARKU_DB_AUTO_MIGRATE=true \
           MARKU_JWT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-          MARKU_IP_HASH_SALT=ci-salt \
+          MARKU_IP_HASH_SALT=ci-salt-1234567890 \
           ./dist/marku-api >/tmp/marku-ci.log 2>&1 &
           pid=$!
-          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          trap 'kill "$pid" 2>/dev/null || true; cat /tmp/marku-ci.log' EXIT
           for _ in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:36580/healthz >/dev/null; then break; fi
             sleep 1

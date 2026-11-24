@@ -57,7 +57,7 @@ jobs:
         run: pnpm build:binary
       - name: Smoke test embedded UI
         run: |
-          MARKU_ENV=production \
+          MARKU_ENV=test \
           MARKU_HTTP_ADDR=127.0.0.1:36580 \
           MARKU_DB_DSN=/tmp/marku-ci.db \
           MARKU_DB_AUTO_MIGRATE=true \

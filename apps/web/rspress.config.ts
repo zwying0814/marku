@@ -8,7 +8,7 @@ export default defineConfig({
   title: 'Marku',
   description: '面向静态博客的无头动态内容 API',
   lang: 'zh',
-  base: '/docs/',
+  base: '/',
   sitemap: false,
   logo: '/marku.svg',
   logoText: 'Marku',
@@ -57,6 +57,13 @@ export default defineConfig({
             { text: '浏览量与点赞', link: '/guide/analytics' },
           ],
         },
+        {
+          text: 'SDK 与组件',
+          items: [
+            { text: 'TypeScript 客户端', link: '/guide/client' },
+            { text: 'Web Component 嵌入', link: '/guide/embed' },
+          ],
+        },
       ],
       '/api/': [
         {
@@ -84,7 +91,7 @@ export default defineConfig({
     },
     footer: {
       message:
-        'Marku · Headless dynamic content for static blogs · v0.2.0',
+        'Marku · Headless dynamic content for static blogs · v0.3.0',
     },
   },
 })

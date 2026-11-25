@@ -6,9 +6,30 @@
 
 ### Planned
 
-- Next.js 接入示例（v0.1 不包含）
-- `@marku/client` 与 `@marku/embed`（v0.2 候选）
+- Next.js 接入示例
 - 评论提交幂等键
+- npm 自动化发布工作流
+
+## [0.3.0] - 2026-11-25
+
+### Added
+
+- `@marku/client`：类型化公共 API 客户端，覆盖站点、评论、浏览量、点赞与聚合统计。
+- `@marku/embed`：`<marku-comments>`、`<marku-like>`、`<marku-stats>` Web Components。
+- 两个包补充 npm 发布配置：`publishConfig`（public）、`exports`、
+  `prepublishOnly`、`unpkg`/`jsdelivr` 入口与 MIT 许可证。
+- Shadow DOM 默认隔离、CSS 变量与 `::part()` 主题契约，以及 `no-shadow` Light DOM 模式。
+- 组件事件：`marku:comment-submitted`、`marku:like-change`、`marku:error`。
+- 单二进制新增 `/embed/v1/marku-embed.js` 与 `/embed/v1/marku-embed.iife.js` 分发。
+- 纯 HTML 示例新增 `embed.html` 组件版本。
+- 文档新增《TypeScript 客户端》与《Web Component 嵌入》。
+
+### Changed
+
+- `apps/docs` 重命名为 `apps/web`，定位为独立官网与文档站，Rspress `base` 改为 `/`。
+- 文档站不再构建进 Docker 镜像或单二进制；二进制只内置 Admin 与 `/embed/v1`。
+- 根脚本改为 `dev:web`，新增 `publish:client` / `publish:embed`。
+- 版本升级至 `0.3.0`。
 
 ## [0.2.0] - 2026-11-24
 

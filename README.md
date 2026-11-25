@@ -2,7 +2,7 @@
 
 Marku 是一个面向静态博客的无头动态内容扩展平台。博客保持原有的构建与部署方式，通过公共 API 或可选官方组件接入评论、浏览量和点赞。
 
-当前版本 **v0.2.0**。API 已具备管理员 JWT、站点 CRUD、Site Key 管理、多站点隔离、评论审核与楼中楼、浏览量、点赞、聚合统计、OpenAPI、共享类型与 Docker 部署。Admin 和 Rspress 文档站通过 `go:embed` 内置于官方二进制，单进程即可提供 API、管理后台和文档。
+当前版本 **v0.3.0**。API 已具备管理员 JWT、站点 CRUD、Site Key 管理、多站点隔离、评论审核与楼中楼、浏览量、点赞、聚合统计、OpenAPI、共享类型与 Docker 部署。Admin 与 `/embed/v1` 组件通过 `go:embed` 内置于官方二进制；官网与文档站（`apps/web`）独立部署，不再进入镜像。
 
 ## 架构
 
@@ -10,9 +10,9 @@ Marku 是一个面向静态博客的无头动态内容扩展平台。博客保�
 | --- | --- | --- |
 | `apps/api` | Go + Gin + GORM + SQLite | 多站点动态内容 API |
 | `apps/admin` | React + Vite + TypeScript + Tailwind CSS | 站点管理与数据后台 |
-| `apps/docs` | Rspress | 文档站 |
-| `packages/client` | 可选 | Headless 数据客户端，无 UI |
-| `packages/embed` | 可选 | Web Component 评论组件 |
+| `apps/web` | Rspress | 官网与文档站，独立部署 |
+| `packages/client` | TypeScript | Headless 数据客户端，无 UI |
+| `packages/embed` | Web Components | 评论、点赞、统计组件，Shadow DOM + CSS 变量 |
 | `packages/shared` | TypeScript | OpenAPI 生成的共享 TypeScript 类型 |
 | `examples/html-blog` | 原生 HTML/CSS/JS | 不依赖框架的完整接入示例 |
 | `examples/nextjs-blog` | 不纳入 v0.1 | 后续接入参考 |
@@ -35,7 +35,7 @@ pnpm dev
 
 - API：`http://localhost:36580`
 - Admin：`http://localhost:36581`
-- Docs：`http://localhost:36582/docs/`
+- 官网 / 文档：`http://localhost:36582/`
 - HTML 示例：`http://localhost:36583`
 - 健康检查：`http://localhost:36580/healthz`
 - 数据库就绪检查：`http://localhost:36580/readyz`
@@ -78,7 +78,7 @@ pnpm migrate          # 执行 API 数据库迁移
 pnpm seed             # 写入演示站点、评论、浏览量和点赞
 pnpm generate:types   # 从 OpenAPI 生成共享 TypeScript 类型
 pnpm build            # 构建所有可构建的 workspace 包
-pnpm build:binary     # 构建内置 Admin/Docs 的单二进制 dist/marku-api
+pnpm build:binary     # 构建内置 Admin 与组件的单二进制 dist/marku-api
 pnpm lint             # Go vet（Admin 不引入前端 lint 工具）
 pnpm typecheck        # Go vet + TypeScript 类型检查
 pnpm test             # Go 测试 + Admin Vitest
@@ -95,12 +95,67 @@ pnpm --filter @marku/admin build
 ## 文档与演示
 
 - Admin：`http://localhost:36580/`
-- Rspress 文档：`http://localhost:36580/docs/`
+- 官网与文档（独立服务）：`http://localhost:36582/`
 - Swagger UI：`http://localhost:36580/swagger`
 - OpenAPI：`http://localhost:36580/openapi.yaml`
 - 共享类型：`packages/shared/src/api.d.ts`
 - 纯 HTML 接入示例：`examples/html-blog/README.md`
-- Rspress 文档源码：`apps/docs/docs`
+- 官网与文档源码：`apps/web/docs`
+
+## 客户端与组件
+
+`@marku/client` 是无 UI 的类型化客户端：
+
+```ts
+import { MarkuClient } from '@marku/client'
+
+const marku = new MarkuClient({
+  baseUrl: 'https://api.example.com/api/v1',
+  siteKey: 'mk_your_site_key',
+})
+
+const post = marku.forPath('/posts/hello')
+const stats = await post.stats()
+await post.comments.create({ authorName: 'Ada', content: '你好。' })
+```
+
+`@marku/embed` 提供可直接落地的 Web Component，构建产物会随单二进制分发到
+`/embed/v1/marku-embed.js`：
+
+```html
+<script type="module" src="https://api.example.com/embed/v1/marku-embed.js"></script>
+
+<marku-stats record-view></marku-stats>
+<marku-like></marku-like>
+<marku-comments api="https://api.example.com/api/v1" site-key="mk_your_site_key"></marku-comments>
+```
+
+主题通过 `--marku-*` 变量与 `::part()` 定制，详见
+`apps/web/docs/guide/embed.md`；需要完全自定义 UI 时使用
+`packages/client/README.md`。
+
+## npm 发布
+
+`@marku/client` 与 `@marku/embed` 已配置 `publishConfig`（public）、
+`exports`、类型声明和 `prepublishOnly` 构建。
+
+```bash
+# 1. 确认版本号（两个包独立 semver）
+pnpm --filter @marku/client build
+pnpm --filter @marku/embed build
+
+# 2. 登录并发布
+pnpm publish:client
+pnpm publish:embed
+```
+
+发布前请确认：
+
+- npm scope `@marku` 可用，或先改为自己的 scope。
+- 账号已登录（`npm login`），CI 发布需配置 `NPM_TOKEN`。
+- 需要 provenance 时在 CI 中使用 `npm publish --provenance --access public`。
+- `dist/` 已重新生成，且 `pnpm typecheck && pnpm test` 通过。
+- 版本号与 `CHANGELOG.md` 已更新。
 
 ## Docker
 
@@ -112,8 +167,8 @@ docker compose up -d --build
 
 默认地址：
 
-- API / Admin / Docs：`http://localhost:36580`
-- Rspress 文档：`http://localhost:36580/docs/`
+- API / Admin：`http://localhost:36580`
+- 官网与文档：独立构建 `apps/web` 后部署，不在镜像内
 - Swagger UI：`http://localhost:36580/swagger`
 
 SQLite 数据保存在 Docker volume `marku_marku-data`。备份示例：
@@ -141,8 +196,8 @@ marku/
 │   ├── admin/        # React 管理后台
 │   └── docs/         # Rspress 文档站
 ├── packages/
-│   ├── client/       # 可选 Headless SDK
-│   ├── embed/        # 可选 Web Component
+│   ├── client/       # Headless SDK（@marku/client）
+│   ├── embed/        # Web Components（@marku/embed）
 │   └── shared/       # OpenAPI 生成的共享类型
 ├── examples/
 │   ├── html-blog/    # 纯 HTML/CSS/JS 接入示例
@@ -163,15 +218,17 @@ marku/
 - M6 API 文档与容器化
 - M7 Admin 功能
 - M8 集成示例、文档与 v0.1 发布收口（Next.js 示例不纳入 v0.1）
-- v0.2.0 单二进制发行（Admin 与 Docs 内置）
+- v0.2.0 单二进制发行（Admin 与 Docs 内置；v0.3 起官网独立部署）
+- M9 集成包：`@marku/client`、`@marku/embed` 与 `/embed/v1` 分发（npm 发布待定）
+- v0.3.0：客户端与组件包发布、官网拆分
 
 详细任务见 `DEVELOPMENT_TASKS.md`。
 
 ## 说明
 
 - 站点凭证统一称为 **Site Key**，它会出现在博客前端，不是 Secret。管理端使用 JWT。
-- 开发模式使用独立 Vite/Rspress 服务；`pnpm build:binary` 会把 Admin 与 Docs
-  构建产物嵌入 Go 二进制。
-- `apps/docs` 使用 Rspress 构建，产物位于 `apps/docs/doc_build`。
+- 开发模式使用独立 Vite/Rspress 服务；`pnpm build:binary` 只把 Admin 与
+  `@marku/embed` 产物嵌入 Go 二进制。
+- `apps/web` 使用 Rspress 构建，产物位于 `apps/web/doc_build`，独立部署。
 - Go module path 暂定为 `marku/api`，确定正式仓库地址后统一替换。
 - Admin 前端质量门禁为 TypeScript 严格模式、Vitest 与生产构建，不引入 ESLint、Oxlint 或 Prettier。

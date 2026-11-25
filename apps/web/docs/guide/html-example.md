@@ -11,6 +11,7 @@ outline: [2, 3]
 ```text
 examples/html-blog/
 ├── index.html
+├── embed.html
 ├── styles.css
 ├── app.js
 ├── config.js
@@ -27,6 +28,9 @@ examples/html-blog/
 - 评论提交与审核状态
 - `401`、`403`、`409`、`429` 与 CORS 错误处理
 - 移动端与暗色模式
+
+`embed.html` 是同一功能的 Web Component 版本，只保留三个自定义元素和一行
+脚本引入；对比两个页面即可看出手写请求与组件封装的差别。
 
 ## 1. 启动 API
 

@@ -29,16 +29,17 @@ async function copyDirectory(source, target) {
 }
 
 if (process.env.MARKU_SKIP_WEB !== '1') {
+  run(pnpm, ['--filter', '@marku/client', 'build'])
+  run(pnpm, ['--filter', '@marku/embed', 'build'])
   run(pnpm, ['--filter', '@marku/admin', 'build'])
-  run(pnpm, ['--filter', '@marku/docs', 'build'])
 
   await copyDirectory(
     join(root, 'apps/admin/dist'),
     join(root, 'apps/api/internal/webui/admin-dist'),
   )
   await copyDirectory(
-    join(root, 'apps/docs/doc_build'),
-    join(root, 'apps/api/internal/webui/docs-dist'),
+    join(root, 'packages/embed/dist'),
+    join(root, 'apps/api/internal/webui/embed-dist'),
   )
 }
 

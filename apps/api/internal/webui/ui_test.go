@@ -18,13 +18,11 @@ func TestEmbeddedUI(t *testing.T) {
 		"assets/admin.1234.js": &fstest.MapFile{Data: []byte("console.log('admin')")},
 		"favicon.svg":          &fstest.MapFile{Data: []byte("<svg></svg>")},
 	}
-	docs := fstest.MapFS{
-		"index.html":                 &fstest.MapFile{Data: []byte("<html>docs</html>")},
-		"guide/getting-started.html": &fstest.MapFile{Data: []byte("<html>started</html>")},
-		"static/css/styles.1234.css": &fstest.MapFile{Data: []byte("body{}")},
-		"404.html":                   &fstest.MapFile{Data: []byte("<html>docs 404</html>")},
+	embed := fstest.MapFS{
+		"marku-embed.js":      &fstest.MapFile{Data: []byte("console.log('embed')")},
+		"marku-embed.iife.js": &fstest.MapFile{Data: []byte("var MarkuEmbed;")},
 	}
-	ui := New(admin, docs)
+	ui := New(admin, embed)
 
 	engine := gin.New()
 	ui.Register(engine)
@@ -42,6 +40,7 @@ func TestEmbeddedUI(t *testing.T) {
 		wantStatus  int
 		wantBody    string
 		wantContent string
+		wantHeaders map[string]string
 	}{
 		{
 			name:       "admin root",
@@ -72,32 +71,11 @@ func TestEmbeddedUI(t *testing.T) {
 			wantStatus: http.StatusNotFound,
 		},
 		{
-			name:       "docs root",
-			method:     http.MethodGet,
-			target:     "/docs/",
-			wantStatus: http.StatusOK,
-			wantBody:   "<html>docs</html>",
-		},
-		{
-			name:       "docs clean route",
+			name:       "docs path is not served by the binary",
 			method:     http.MethodGet,
 			target:     "/docs/guide/getting-started",
-			wantStatus: http.StatusOK,
-			wantBody:   "<html>started</html>",
-		},
-		{
-			name:       "docs static asset",
-			method:     http.MethodGet,
-			target:     "/docs/static/css/styles.1234.css",
-			wantStatus: http.StatusOK,
-			wantBody:   "body{}",
-		},
-		{
-			name:       "docs not found",
-			method:     http.MethodGet,
-			target:     "/docs/missing",
 			wantStatus: http.StatusNotFound,
-			wantBody:   "<html>docs 404</html>",
+			wantBody:   "api not found",
 		},
 		{
 			name:       "api route is not admin",
@@ -105,6 +83,38 @@ func TestEmbeddedUI(t *testing.T) {
 			target:     "/api/v1/missing",
 			wantStatus: http.StatusNotFound,
 			wantBody:   "api not found",
+		},
+		{
+			name:        "embed script",
+			method:      http.MethodGet,
+			target:      "/embed/v1/marku-embed.js",
+			wantStatus:  http.StatusOK,
+			wantBody:    "console.log('embed')",
+			wantContent: "javascript",
+			wantHeaders: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+				"Cache-Control":               "public, max-age=31536000, immutable",
+			},
+		},
+		{
+			name:       "embed iife script",
+			method:     http.MethodGet,
+			target:     "/embed/v1/marku-embed.iife.js",
+			wantStatus: http.StatusOK,
+			wantBody:   "var MarkuEmbed;",
+		},
+		{
+			name:       "missing embed asset",
+			method:     http.MethodGet,
+			target:     "/embed/v1/missing.js",
+			wantStatus: http.StatusNotFound,
+		},
+		{
+			name:       "embed path is not admin fallback",
+			method:     http.MethodGet,
+			target:     "/embed/v1/unknown",
+			wantStatus: http.StatusNotFound,
+			wantBody:   "404 page not found",
 		},
 	}
 
@@ -122,12 +132,12 @@ func TestEmbeddedUI(t *testing.T) {
 			if test.wantContent != "" && !strings.Contains(recorder.Header().Get("Content-Type"), test.wantContent) {
 				t.Fatalf("content-type = %q, want contains %q", recorder.Header().Get("Content-Type"), test.wantContent)
 			}
+			for header, want := range test.wantHeaders {
+				if got := recorder.Header().Get(header); got != want {
+					t.Fatalf("%s = %q, want %q", header, got, want)
+				}
+			}
 		})
 	}
 
-	recorder := httptest.NewRecorder()
-	engine.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/docs", nil))
-	if recorder.Code != http.StatusPermanentRedirect || recorder.Header().Get("Location") != "/docs/" {
-		t.Fatalf("docs redirect = status %d location %q", recorder.Code, recorder.Header().Get("Location"))
-	}
 }

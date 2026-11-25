@@ -9,12 +9,14 @@ HTML，浏览器直接调用 Marku 公共 API，完成：
 - 评论提交与审核状态提示
 - canonical path 处理
 - `401` / `403` / `429`、CORS、网络失败等错误处理
+- 同一功能的 Web Component 版本（`embed.html`）
 
 ## 目录
 
 ```text
 examples/html-blog/
 ├── index.html   # 静态文章、评论表单与评论区
+├── embed.html   # 使用 <marku-comments> 等自定义元素的版本
 ├── styles.css   # 响应式样式与暗色模式
 ├── app.js       # 公共 API 调用与 DOM 渲染
 ├── config.js    # API 地址和 Site Key

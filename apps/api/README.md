@@ -2,7 +2,7 @@
 
 Marku 的公共 API，基于 Go、Gin、GORM 和 SQLite。
 
-当前版本 v0.2.0：
+当前版本 v0.3.0：
 
 - 分层目录：`cmd`、`config`、`database`、`handler`、`middleware`、`model`、`repository`、`router`、`service`、`response`
 - 环境变量配置与启动校验
@@ -21,7 +21,7 @@ Marku 的公共 API，基于 Go、Gin、GORM 和 SQLite。
 - 点赞幂等设置/取消、访客状态查询、点赞总数与每日净变化趋势
 - 公共聚合统计接口，一次返回评论数、浏览量、点赞数和访客点赞状态
 - OpenAPI 3 文档、Swagger UI、共享 TypeScript 类型生成
-- Admin 与 Rspress Docs 通过 `go:embed` 内置，单二进制同时提供 API 和 Web UI
+- Admin 与 `/embed/v1` 组件通过 `go:embed` 内置，单二进制同时提供 API 和 Web UI
 - Dockerfile、Docker Compose、Demo seed 命令
 - `/healthz`、`/readyz`、优雅关闭
 
@@ -41,7 +41,7 @@ cp .env.example .env
 go run ./cmd/server
 ```
 
-构建内置 Admin/Docs 的单二进制：
+构建内置 Admin 与组件的单二进制：
 
 ```bash
 pnpm build:binary
@@ -272,7 +272,7 @@ pnpm seed
 | GET | `/healthz` | 进程健康检查 |
 | GET | `/readyz` | 数据库就绪检查 |
 | GET | `/` | 内置 Admin SPA |
-| GET | `/docs/*` | 内置 Rspress 文档 |
+| GET | `/embed/v1/*` | 官方 Web Component 脚本 |
 | GET | `/swagger` | Swagger UI |
 | GET | `/openapi.yaml` | OpenAPI 3 文档 |
 

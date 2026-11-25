@@ -1,6 +1,59 @@
 {
   "name": "@marku/client",
-  "version": "0.2.0",
-  "private": true,
-  "description": "Reserved for the optional headless Marku client"
+  "version": "0.3.0",
+  "description": "Headless, typed Marku API client",
+  "license": "MIT",
+  "author": "Marku contributors",
+  "homepage": "https://github.com/zwying0814/marku/tree/main/packages/client",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zwying0814/marku.git",
+    "directory": "packages/client"
+  },
+  "bugs": {
+    "url": "https://github.com/zwying0814/marku/issues"
+  },
+  "keywords": [
+    "marku",
+    "comments",
+    "static-blog",
+    "headless",
+    "analytics",
+    "likes"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/marku-client.js",
+  "module": "./dist/marku-client.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/marku-client.js",
+      "default": "./dist/marku-client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "jsdom": "^31.0.1",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.1"
+  }
 }

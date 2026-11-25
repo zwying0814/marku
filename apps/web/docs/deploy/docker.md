@@ -1,6 +1,6 @@
 ---
 title: Docker Compose
-description: 使用 Docker Compose 启动内置 Admin 与 Docs 的单二进制 Marku。
+description: 使用 Docker Compose 启动内置 Admin 与组件脚本的单二进制 Marku。
 outline: [2, 3]
 ---
 
@@ -35,19 +35,20 @@ docker compose up -d --build
 | 服务 | 地址 |
 | --- | --- |
 | Admin | `http://localhost:36580/` |
-| Rspress Docs | `http://localhost:36580/docs/` |
 | Swagger UI | `http://localhost:36580/swagger` |
 | 健康检查 | `http://localhost:36580/healthz` |
+
+官网与文档站（`apps/web`）不再打进镜像，需要单独执行
+`pnpm --filter @marku/web build` 后部署 `apps/web/doc_build`。
 
 ## 3. 容器结构
 
 ```text
 web-build
-  ├── 构建 Admin（Vite）
-  └── 构建 Docs（Rspress）
+  └── 构建 Admin（Vite）
 
 runtime
-  ├── Go 编译时嵌入 Admin 与 Docs
+  ├── Go 编译时嵌入 Admin 与组件脚本
   ├── 非 root 用户运行
   ├── SQLite 数据挂载到 /data
   └── 单端口 36580

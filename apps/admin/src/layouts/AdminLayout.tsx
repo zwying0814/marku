@@ -169,7 +169,7 @@ export function AdminLayout() {
             </p>
           </div>
           <p className="px-2 text-[11px] text-slate-400 dark:text-slate-500">
-            Marku Admin v0.2.0
+            Marku Admin v{__MARKU_VERSION__}
           </p>
         </div>
       </aside>

@@ -15,7 +15,7 @@ Marku 是一个面向静态博客的「无头动态内容扩展平台」：
 | --- | --- | --- |
 | `apps/api` | Go + Gin + GORM | 多站点动态内容 API，内置评论、浏览量、点赞 |
 | `apps/admin` | React + Vite + TypeScript + Tailwind CSS | 站点管理、评论审核、数据看板 |
-| `apps/docs` | Rspress | 文档站与接入指南 |
+| `apps/web` | Rspress | 官网、文档站与接入指南（独立部署） |
 
 ### 可选集成包
 
@@ -95,7 +95,7 @@ marku/
 说明：
 
 - Go 应用不受 pnpm 管理，但保留 `apps/api/package.json` 作为脚本代理，使 `pnpm --filter @marku/api dev` 等命令可用。
-- `apps/docs` 使用 Rspress 构建，内容覆盖快速开始、API、部署与发布。
+- `apps/web` 使用 Rspress 构建，内容覆盖快速开始、API、部署与发布。
 - `packages/shared` 在 API 契约稳定后再创建，避免过早抽象。
 - `packages/client` 与 `packages/embed` 为可选交付，v0.1 可以只保留目录与设计文档，不阻塞核心验收。
 - `examples/nextjs-blog` 是 API-first 的参考实现，优先级高于自研 Widget。
@@ -150,7 +150,7 @@ marku/
 - [x] 创建 `pnpm-workspace.yaml`，包含 `apps/*`、`packages/*`。
 - [x] 创建 `.npmrc`，统一依赖提升与安装行为。
 - [x] 创建 `.nvmrc` 与 `.editorconfig`。
-- [x] 建立 `apps/api`、`apps/admin`、`apps/docs` 三个目录。
+- [x] 建立 `apps/api`、`apps/admin`、`apps/web` 三个目录。
 - [x] 建立可选包占位目录 `packages/client`、`packages/embed`，以及 `examples/nextjs-blog`。
 - [x] 根脚本：`dev`、`dev:api`、`dev:admin`、`build`、`lint`、`test`、`typecheck`。
 - [x] 配置根 README：项目简介、环境要求、快速开始、目录说明。
@@ -387,17 +387,18 @@ marku/
 - [x] 根路径 `/` 提供 Admin，`/docs/` 提供 Rspress，`/swagger` 提供 Swagger UI。
 - [x] 增加 `pnpm build:binary`，自动构建前端并生成 `dist/marku-api`。
 - [x] Docker Compose 收敛为单个 API 容器。
-- [x] Release 提供包含 Admin 与 Docs 的跨平台单二进制。
+- [x] Release 提供包含 Admin 的跨平台单二进制；v0.3 起官网与文档站独立部署。
 
 ### M9（可选，后续版本）：集成包与主题契约
 
-- [ ] 实现 `@marku/client`：从 OpenAPI 生成类型，提供评论、浏览量、点赞、统计方法，同时支持浏览器与服务端。
-- [ ] 实现 `@marku/embed`：Web Component 形式的可选评论组件，默认 Shadow DOM。
-- [ ] 开放 CSS 变量：`--marku-accent`、`--marku-text`、`--marku-muted`、`--marku-surface`、`--marku-border`、`--marku-radius`、`--marku-font`、`--marku-spacing`、`--marku-max-width`。
-- [ ] 开放 `::part()` 契约：`container`、`header`、`comment`、`avatar`、`author`、`meta`、`content`、`actions`、`form`、`submit`、`empty`、`pagination`。
-- [ ] 支持 `data-theme="auto|light|dark"` 与可选的 Light DOM 模式。
-- [ ] 编写样式契约文档，明确内部 DOM 不属于公共 API，只有变量与 `part` 名称遵循 semver。
-- [ ] 为 `embed` 增加无障碍、移动端、暗色模式和样式隔离测试。
+- [x] 实现 `@marku/client`：提供站点、评论、浏览量、点赞、统计方法，支持浏览器与服务端。
+- [x] 实现 `@marku/embed`：`<marku-comments>`、`<marku-like>`、`<marku-stats>`，默认 Shadow DOM。
+- [x] 开放 CSS 变量：`--marku-accent`、`--marku-text`、`--marku-muted`、`--marku-surface`、`--marku-border`、`--marku-radius`、`--marku-font`、`--marku-gap`、`--marku-max-width`。
+- [x] 开放 `::part()` 契约：`container`、`header`、`comment`、`author`、`time`、`content`、`actions`、`form`、`submit`、`empty`、`load-more` 等。
+- [x] 支持 `theme="light|dark"` 与可选的 `no-shadow` Light DOM 模式。
+- [x] 编写样式契约文档，明确内部 DOM 不属于公共 API，只有变量与 `part` 名称遵循 semver。
+- [x] 单二进制通过 `/embed/v1/` 分发组件脚本，并补充单元测试。
+- [ ] 为 `embed` 增加移动端、键盘导航与屏幕阅读器的专项测试。
 - [ ] 配置 npm 发布、类型声明、exports 与包体积预算。
 
 ---
@@ -675,7 +676,7 @@ VITE_API_BASE_URL=http://localhost:36580/api/v1
 
 ## 9. v0.1 验收标准
 
-- [x] `pnpm install` 后，`pnpm dev` 可同时启动 API、Admin 与 Docs。
+- [x] `pnpm install` 后，`pnpm dev` 可同时启动 API、Admin 与 Web。
 - [x] 可创建至少两个站点，并获取各自 Site Key。
 - [x] 两个站点的评论、浏览量、点赞数据完全隔离。
 - [x] `examples/html-blog` 可完成评论提交、评论展示、浏览量上报、点赞切换。
@@ -685,7 +686,7 @@ VITE_API_BASE_URL=http://localhost:36580/api/v1
 - [x] 核心接口具备自动化测试，站点隔离与并发计数用例通过。
 - [x] `docker compose up` 可启动完整服务。
 - [x] README、API 文档、部署文档齐全。
-- [x] `apps/docs` 提供可构建的 Rspress 文档站。
+- [x] `apps/web` 提供可构建的 Rspress 官网与文档站。
 
 ---
 

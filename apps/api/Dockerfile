@@ -5,14 +5,12 @@ RUN corepack enable && corepack prepare pnpm@12.23.0 --activate
 WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY apps/admin/package.json apps/admin/package.json
-COPY apps/docs/package.json apps/docs/package.json
 COPY packages/shared/package.json packages/shared/package.json
-RUN pnpm install --frozen-lockfile --filter @marku/admin --filter @marku/docs
+RUN pnpm install --frozen-lockfile --filter @marku/admin
 
 COPY packages/shared packages/shared
 COPY apps/admin apps/admin
-COPY apps/docs apps/docs
-RUN pnpm --filter @marku/admin build && pnpm --filter @marku/docs build
+RUN pnpm --filter @marku/admin build
 
 FROM golang:1.27-alpine AS build
 
@@ -24,7 +22,6 @@ RUN go mod download
 
 COPY apps/api ./
 COPY --from=web-build /repo/apps/admin/dist ./internal/webui/admin-dist
-COPY --from=web-build /repo/apps/docs/doc_build ./internal/webui/docs-dist
 
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/marku-api ./cmd/server
 

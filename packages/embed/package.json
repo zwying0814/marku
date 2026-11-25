@@ -1,6 +1,67 @@
 {
   "name": "@marku/embed",
-  "version": "0.2.0",
-  "private": true,
-  "description": "Reserved for the optional Marku Web Component"
+  "version": "0.3.0",
+  "description": "Marku Web Components for comments, views and likes",
+  "license": "MIT",
+  "author": "Marku contributors",
+  "homepage": "https://github.com/zwying0814/marku/tree/main/packages/embed",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zwying0814/marku.git",
+    "directory": "packages/embed"
+  },
+  "bugs": {
+    "url": "https://github.com/zwying0814/marku/issues"
+  },
+  "keywords": [
+    "marku",
+    "comments",
+    "web-components",
+    "custom-elements",
+    "static-blog"
+  ],
+  "type": "module",
+  "sideEffects": [
+    "./dist/marku-embed.js",
+    "./dist/marku-embed.iife.js"
+  ],
+  "main": "./dist/marku-embed.js",
+  "module": "./dist/marku-embed.js",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/marku-embed.iife.js",
+  "jsdelivr": "./dist/marku-embed.iife.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/marku-embed.js",
+      "default": "./dist/marku-embed.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "prebuild": "pnpm --filter @marku/client build",
+    "prepublishOnly": "pnpm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@marku/client": "workspace:*"
+  },
+  "devDependencies": {
+    "jsdom": "^31.0.1",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.1"
+  }
 }

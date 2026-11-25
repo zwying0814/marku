@@ -14,39 +14,55 @@ import (
 //go:embed all:admin-dist
 var adminAssets embed.FS
 
-//go:embed all:docs-dist
-var docsAssets embed.FS
+//go:embed all:embed-dist
+var embedAssets embed.FS
 
 type UI struct {
 	admin          fs.FS
-	docs           fs.FS
+	embed          fs.FS
 	adminAvailable bool
-	docsAvailable  bool
+	embedAvailable bool
 }
 
 func Default() *UI {
 	admin, _ := fs.Sub(adminAssets, "admin-dist")
-	docs, _ := fs.Sub(docsAssets, "docs-dist")
-	return New(admin, docs)
+	embedFS, _ := fs.Sub(embedAssets, "embed-dist")
+	return New(admin, embedFS)
 }
 
-func New(admin, docs fs.FS) *UI {
+func New(admin fs.FS, embedFS ...fs.FS) *UI {
+	var embedAssets fs.FS
+	if len(embedFS) > 0 {
+		embedAssets = embedFS[0]
+	}
 	return &UI{
 		admin:          admin,
-		docs:           docs,
+		embed:          embedAssets,
 		adminAvailable: fileExists(admin, "index.html"),
-		docsAvailable:  fileExists(docs, "index.html"),
+		embedAvailable: fileExists(embedAssets, "marku-embed.js"),
 	}
 }
 
 func (u *UI) Register(engine *gin.Engine) {
-	if !u.docsAvailable {
+	if !u.embedAvailable {
 		return
 	}
-	engine.GET("/docs", redirectToDocs)
-	engine.HEAD("/docs", redirectToDocs)
-	engine.GET("/docs/*filepath", u.serveDocs)
-	engine.HEAD("/docs/*filepath", u.serveDocs)
+	engine.GET("/embed/v1/*filepath", u.serveEmbed)
+	engine.HEAD("/embed/v1/*filepath", u.serveEmbed)
+}
+
+func (u *UI) serveEmbed(c *gin.Context) {
+	rel, ok := cleanPath(c.Param("filepath"))
+	if !ok || rel == "" {
+		http.NotFound(c.Writer, c.Request)
+		return
+	}
+
+	c.Header("Access-Control-Allow-Origin", "*")
+	if serveFileWithCache(c, u.embed, rel, http.StatusOK, "public, max-age=31536000, immutable") {
+		return
+	}
+	http.NotFound(c.Writer, c.Request)
 }
 
 func (u *UI) HandleNoRoute(c *gin.Context) bool {
@@ -57,10 +73,6 @@ func (u *UI) HandleNoRoute(c *gin.Context) bool {
 		return false
 	}
 	return u.serveAdmin(c)
-}
-
-func redirectToDocs(c *gin.Context) {
-	c.Redirect(http.StatusPermanentRedirect, "/docs/")
 }
 
 func (u *UI) serveAdmin(c *gin.Context) bool {
@@ -80,42 +92,11 @@ func (u *UI) serveAdmin(c *gin.Context) bool {
 	return serveFile(c, u.admin, "index.html", http.StatusOK)
 }
 
-func (u *UI) serveDocs(c *gin.Context) {
-	rel, ok := cleanPath(c.Param("filepath"))
-	if !ok {
-		http.NotFound(c.Writer, c.Request)
-		return
-	}
-	if rel == "" {
-		if serveFile(c, u.docs, "index.html", http.StatusOK) {
-			return
-		}
-		u.serveDocsNotFound(c)
-		return
-	}
-
-	if serveFile(c, u.docs, rel, http.StatusOK) {
-		return
-	}
-	if path.Ext(rel) == "" {
-		if serveFile(c, u.docs, rel+".html", http.StatusOK) {
-			return
-		}
-		if serveFile(c, u.docs, path.Join(rel, "index.html"), http.StatusOK) {
-			return
-		}
-	}
-	u.serveDocsNotFound(c)
-}
-
-func (u *UI) serveDocsNotFound(c *gin.Context) {
-	if serveFile(c, u.docs, "404.html", http.StatusNotFound) {
-		return
-	}
-	http.NotFound(c.Writer, c.Request)
-}
-
 func serveFile(c *gin.Context, fsys fs.FS, name string, status int) bool {
+	return serveFileWithCache(c, fsys, name, status, "")
+}
+
+func serveFileWithCache(c *gin.Context, fsys fs.FS, name string, status int, cacheControl string) bool {
 	if fsys == nil || !fs.ValidPath(name) {
 		return false
 	}
@@ -131,13 +112,17 @@ func serveFile(c *gin.Context, fsys fs.FS, name string, status int) bool {
 	c.Header("Content-Type", contentType)
 	c.Header("X-Content-Type-Options", "nosniff")
 	c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
-	switch {
-	case strings.HasSuffix(name, ".html"):
-		c.Header("Cache-Control", "no-cache")
-	case strings.HasPrefix(name, "assets/"), strings.HasPrefix(name, "static/"):
-		c.Header("Cache-Control", "public, max-age=31536000, immutable")
-	default:
-		c.Header("Cache-Control", "public, max-age=3600")
+	if cacheControl != "" {
+		c.Header("Cache-Control", cacheControl)
+	} else {
+		switch {
+		case strings.HasSuffix(name, ".html"):
+			c.Header("Cache-Control", "no-cache")
+		case strings.HasPrefix(name, "assets/"), strings.HasPrefix(name, "static/"):
+			c.Header("Cache-Control", "public, max-age=31536000, immutable")
+		default:
+			c.Header("Cache-Control", "public, max-age=3600")
+		}
 	}
 
 	c.Status(status)
@@ -176,5 +161,5 @@ func reservedPath(raw string) bool {
 		return true
 	}
 	return strings.HasPrefix(raw, "/api/") || strings.HasPrefix(raw, "/docs/") ||
-		strings.HasPrefix(raw, "/swagger/")
+		strings.HasPrefix(raw, "/swagger/") || strings.HasPrefix(raw, "/embed/")
 }

@@ -272,7 +272,7 @@ importers:
 
   apps/api: {}
 
-  apps/docs:
+  apps/web:
     dependencies:
       '@rspress/core':
         specifier: ^2.1.4
@@ -280,9 +280,39 @@ importers:
 
   examples/html-blog: {}
 
-  packages/client: {}
+  packages/client:
+    devDependencies:
+      jsdom:
+        specifier: ^31.0.1
+        version: 31.0.1
+      typescript:
+        specifier: ~7.0.2
+        version: 7.0.2
+      vite:
+        specifier: ^8.3.6
+        version: 8.3.8(@types/node@24.19.2)(jiti@2.7.0)
+      vitest:
+        specifier: ^5.1.1
+        version: 5.1.1(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(jiti@2.7.0))
 
-  packages/embed: {}
+  packages/embed:
+    dependencies:
+      '@marku/client':
+        specifier: workspace:*
+        version: link:../client
+    devDependencies:
+      jsdom:
+        specifier: ^31.0.1
+        version: 31.0.1
+      typescript:
+        specifier: ~7.0.2
+        version: 7.0.2
+      vite:
+        specifier: ^8.3.6
+        version: 8.3.8(@types/node@24.19.2)(jiti@2.7.0)
+      vitest:
+        specifier: ^5.1.1
+        version: 5.1.1(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(jiti@2.7.0))
 
   packages/shared:
     devDependencies:

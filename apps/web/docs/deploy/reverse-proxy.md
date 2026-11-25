@@ -1,6 +1,6 @@
 ---
 title: 反向代理与 HTTPS
-description: Nginx、可信代理、CORS 与单域名单二进制部署。
+description: Nginx、可信代理、CORS 与二进制部署。
 outline: [2, 3]
 ---
 
@@ -8,7 +8,7 @@ outline: [2, 3]
 
 ## 单域名部署
 
-官方二进制同时提供 Admin、Docs、Swagger 与 API，推荐使用一个管理域名：
+官方二进制同时提供 Admin、Swagger、组件脚本与 API；官网与文档站独立部署，推荐使用一个管理域名：
 
 ```text
 https://marku.example.com
@@ -42,9 +42,9 @@ server {
 
 ```text
 /          Admin
-/docs/     Rspress
 /swagger    Swagger UI
 /api/v1/*  API
+/embed/v1/* 组件脚本
 ```
 
 ## 可信代理

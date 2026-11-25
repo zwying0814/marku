@@ -1,9 +1,9 @@
 {
-  "name": "@marku/docs",
-  "version": "0.2.0",
+  "name": "@marku/web",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "Marku documentation site powered by Rspress",
+  "description": "Marku official website and documentation powered by Rspress",
   "scripts": {
     "dev": "rspress --port 36582",
     "build": "rspress build",

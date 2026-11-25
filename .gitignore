@@ -9,13 +9,14 @@ out/
 coverage/
 *.tsbuildinfo
 apps/api/bin/
-apps/docs/doc_build/
+apps/web/doc_build/
 apps/api/internal/webui/admin-dist/*
 !apps/api/internal/webui/admin-dist/.gitkeep
-apps/api/internal/webui/docs-dist/*
-!apps/api/internal/webui/docs-dist/.gitkeep
+apps/api/internal/webui/embed-dist/*
+!apps/api/internal/webui/embed-dist/.gitkeep
 
 # Go
+data/
 apps/api/data/*.db
 apps/api/data/*.db-*
 *.test

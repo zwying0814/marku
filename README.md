@@ -2,7 +2,7 @@
 
 Marku 是一个面向静态博客的无头动态内容扩展平台。博客保持原有的构建与部署方式，通过公共 API 或可选官方组件接入评论、浏览量和点赞。
 
-当前版本 **v0.3.0**。API 已具备管理员 JWT、站点 CRUD、Site Key 管理、多站点隔离、评论审核与楼中楼、浏览量、点赞、聚合统计、OpenAPI、共享类型与 Docker 部署。Admin 与 `/embed/v1` 组件通过 `go:embed` 内置于官方二进制；官网与文档站（`apps/web`）独立部署，不再进入镜像。
+当前版本 **v0.3.1**。API 已具备管理员 JWT、站点 CRUD、Site Key 管理、多站点隔离、评论审核与楼中楼、浏览量、点赞、聚合统计、OpenAPI、共享类型与 Docker 部署。Admin 与 `/embed/v1` 组件通过 `go:embed` 内置于官方二进制；官网与文档站（`apps/web`）独立部署，不再进入镜像。
 
 ## 架构
 
@@ -165,6 +165,15 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
+也可以直接使用 GHCR 多架构镜像（`v*` tag 自动发布）：
+
+```bash
+docker pull ghcr.io/zwying0814/marku:0.3.1
+docker run -d --name marku --restart unless-stopped \
+  --env-file .env -p 127.0.0.1:36580:36580 \
+  -v marku-data:/data ghcr.io/zwying0814/marku:0.3.1
+```
+
 默认地址：
 
 - API / Admin：`http://localhost:36580`
@@ -221,6 +230,7 @@ marku/
 - v0.2.0 单二进制发行（Admin 与 Docs 内置；v0.3 起官网独立部署）
 - M9 集成包：`@marku/client`、`@marku/embed` 与 `/embed/v1` 分发（npm 发布待定）
 - v0.3.0：客户端与组件包发布、官网拆分
+- v0.3.1：修复镜像内缺少 `/embed/v1`，新增 GHCR 多架构镜像发布
 
 详细任务见 `DEVELOPMENT_TASKS.md`。
 

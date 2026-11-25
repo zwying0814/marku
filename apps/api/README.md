@@ -2,7 +2,7 @@
 
 Marku 的公共 API，基于 Go、Gin、GORM 和 SQLite。
 
-当前版本 v0.3.0：
+当前版本 v0.3.1：
 
 - 分层目录：`cmd`、`config`、`database`、`handler`、`middleware`、`model`、`repository`、`router`、`service`、`response`
 - 环境变量配置与启动校验

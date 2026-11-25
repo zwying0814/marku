@@ -91,7 +91,7 @@ export default defineConfig({
     },
     footer: {
       message:
-        'Marku · Headless dynamic content for static blogs · v0.3.0',
+        'Marku · Headless dynamic content for static blogs · v0.3.1',
     },
   },
 })

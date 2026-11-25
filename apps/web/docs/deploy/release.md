@@ -83,7 +83,7 @@ curl -f https://marku.example.com/embed/v1/marku-embed.js
 
 ## 版本
 
-当前版本：`0.3.0`
+当前版本：`0.3.1`
 
 发布后更新：
 

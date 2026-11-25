@@ -30,6 +30,25 @@ Admin 与 API 同源，默认使用相对路径 `/api/v1`，不需要额外配�
 docker compose up -d --build
 ```
 
+## GHCR 镜像
+
+推送 `v*` tag 后，GitHub Actions 会构建 `linux/amd64` 与 `linux/arm64`
+多架构镜像并发布到：
+
+```text
+ghcr.io/zwying0814/marku:<version>
+ghcr.io/zwying0814/marku:latest
+```
+
+服务器可以直接拉取，不需要在本地构建：
+
+```bash
+docker pull ghcr.io/zwying0814/marku:0.3.1
+```
+
+GitHub Packages 默认是私有包。改成 Public 后可直接拉取；保持私有则需要在
+服务器执行 `docker login ghcr.io`，使用具备 `read:packages` 的 PAT。
+
 默认端口：
 
 | 服务 | 地址 |

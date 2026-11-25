@@ -9,8 +9,8 @@ node_modules
 **/.rspress
 apps/api/internal/webui/admin-dist/*
 !apps/api/internal/webui/admin-dist/.gitkeep
-apps/api/internal/webui/docs-dist/*
-!apps/api/internal/webui/docs-dist/.gitkeep
+apps/api/internal/webui/embed-dist/*
+!apps/api/internal/webui/embed-dist/.gitkeep
 *.log
 .env
 .DS_Store

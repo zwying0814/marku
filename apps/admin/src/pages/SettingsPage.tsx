@@ -11,7 +11,6 @@ import {
 } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -26,28 +25,28 @@ import { cn, extractErrorMessage, formatDate, getInitials } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
 
-const passwordSchema = z
+const profileSchema = z
   .object({
+    username: z.string().trim().min(1, '请输入账号').max(64, '账号最多 64 个字符'),
     currentPassword: z.string().min(1, '请输入当前密码'),
-    newPassword: z
-      .string()
-      .min(8, '新密码至少 8 个字符')
-      .max(128, '新密码最多 128 个字符'),
-    confirmPassword: z.string().min(1, '请再次输入新密码'),
+    newPassword: z.string().max(128, '新密码最多 128 个字符'),
+    confirmPassword: z.string(),
   })
   .refine((values) => values.newPassword === values.confirmPassword, {
     path: ['confirmPassword'],
     message: '两次输入的新密码不一致',
   })
+  .refine((values) => !values.newPassword || values.newPassword.length >= 8, {
+    path: ['newPassword'],
+    message: '新密码至少 8 个字符',
+  })
 
-type PasswordForm = z.infer<typeof passwordSchema>
+type ProfileForm = z.infer<typeof profileSchema>
 
 export function SettingsPage() {
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const admin = useAuthStore((state) => state.admin)
   const setAdmin = useAuthStore((state) => state.setAdmin)
-  const logout = useAuthStore((state) => state.logout)
   const theme = useThemeStore((state) => state.theme)
   const setTheme = useThemeStore((state) => state.setTheme)
 
@@ -57,34 +56,50 @@ export function SettingsPage() {
     staleTime: 5 * 60_000,
   })
 
-  useEffect(() => {
-    if (meQuery.data) setAdmin(meQuery.data)
-  }, [meQuery.data, setAdmin])
-
   const {
     register,
     handleSubmit,
     reset,
     setError,
     formState: { errors },
-  } = useForm<PasswordForm>({
-    resolver: zodResolver(passwordSchema),
+  } = useForm<ProfileForm>({
+    resolver: zodResolver(profileSchema),
     defaultValues: {
+      username: '',
       currentPassword: '',
       newPassword: '',
       confirmPassword: '',
     },
   })
 
-  const passwordMutation = useMutation({
-    mutationFn: (values: PasswordForm) =>
-      adminApi.changePassword(values.currentPassword, values.newPassword),
-    onSuccess: () => {
-      reset()
-      queryClient.clear()
-      logout()
-      toast.success('密码已更新，请使用新密码重新登录')
-      navigate('/login', { replace: true })
+  useEffect(() => {
+    if (!meQuery.data) return
+    setAdmin(meQuery.data)
+    reset({
+      username: meQuery.data.email,
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    })
+  }, [meQuery.data, reset, setAdmin])
+
+  const profileMutation = useMutation({
+    mutationFn: (values: ProfileForm) =>
+      adminApi.updateProfile({
+        currentPassword: values.currentPassword,
+        username: values.username,
+        newPassword: values.newPassword || undefined,
+      }),
+    onSuccess: (updated) => {
+      setAdmin(updated)
+      queryClient.setQueryData(queryKeys.me, updated)
+      reset({
+        username: updated.email,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      })
+      toast.success('账号信息已更新')
     },
     onError: (error) => {
       const message = extractErrorMessage(error)
@@ -98,7 +113,7 @@ export function SettingsPage() {
       <PageHeader
         eyebrow="Settings"
         title="账号与安全"
-        description="查看管理员信息、切换界面主题并更新登录密码。"
+        description="查看管理员信息、切换界面主题并更新登录账号与密码。"
       />
 
       <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
@@ -197,20 +212,30 @@ export function SettingsPage() {
             <div className="flex items-center gap-2">
               <KeyRound className="size-4 text-slate-400" />
               <h2 className="text-sm font-semibold text-slate-950 dark:text-white">
-                修改密码
+                修改账号与密码
               </h2>
             </div>
             <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
-              更新成功后当前会话会退出，需要使用新密码重新登录。
+              修改登录账号或密码，均需要验证当前密码。新密码留空表示不修改。
             </p>
 
             <form
               className="mt-5 space-y-4"
               onSubmit={handleSubmit((values) =>
-                passwordMutation.mutate(values),
+                profileMutation.mutate(values),
               )}
               noValidate
             >
+              <div>
+                <Label htmlFor="username">登录账号</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  autoComplete="username"
+                  {...register('username')}
+                />
+                <FieldError message={errors.username?.message} />
+              </div>
               <div>
                 <Label htmlFor="current-password">当前密码</Label>
                 <Input
@@ -223,7 +248,7 @@ export function SettingsPage() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="new-password">新密码</Label>
+                  <Label htmlFor="new-password">新密码（可选）</Label>
                   <Input
                     id="new-password"
                     type="password"
@@ -233,7 +258,7 @@ export function SettingsPage() {
                   <FieldError message={errors.newPassword?.message} />
                 </div>
                 <div>
-                  <Label htmlFor="confirm-password">确认新密码</Label>
+                  <Label htmlFor="confirm-password">确认新密码（可选）</Label>
                   <Input
                     id="confirm-password"
                     type="password"
@@ -249,8 +274,8 @@ export function SettingsPage() {
                 </div>
               ) : null}
               <div className="flex justify-end">
-                <Button type="submit" loading={passwordMutation.isPending}>
-                  更新密码
+                <Button type="submit" loading={profileMutation.isPending}>
+                  保存修改
                 </Button>
               </div>
             </form>

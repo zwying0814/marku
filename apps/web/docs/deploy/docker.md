@@ -16,10 +16,10 @@ cp .env.example .env
 
 ```dotenv
 MARKU_JWT_SECRET=至少32位随机字符串
-MARKU_ADMIN_EMAIL=admin@example.com
-MARKU_ADMIN_PASSWORD=强密码
 MARKU_IP_HASH_SALT=随机字符串
 ```
+
+首次启动会自动创建默认管理员 `admin` / `123456`，登录后请立即修改。
 
 Admin 与 API 同源，默认使用相对路径 `/api/v1`，不需要额外配置
 `VITE_API_BASE_URL`。
@@ -43,7 +43,7 @@ ghcr.io/zwying0814/marku:latest
 服务器可以直接拉取，不需要在本地构建：
 
 ```bash
-docker pull ghcr.io/zwying0814/marku:0.3.1
+docker pull ghcr.io/zwying0814/marku:0.4.0
 ```
 
 GitHub Packages 默认是私有包。改成 Public 后可直接拉取；保持私有则需要在

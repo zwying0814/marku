@@ -1,10 +1,10 @@
 ---
-title: v0.3 发布检查
+title: v0.4 发布检查
 description: 发布前验证、部署步骤与回滚预案。
 outline: [2, 3]
 ---
 
-# v0.3 发布检查
+# v0.4 发布检查
 
 ## 发布前
 
@@ -26,7 +26,7 @@ outline: [2, 3]
 - [ ] `MARKU_ENV=production`。
 - [ ] `MARKU_JWT_SECRET` 不少于 32 字符且未提交到仓库。
 - [ ] `MARKU_IP_HASH_SALT` 已设置。
-- [ ] 管理员初始密码为强密码。
+- [ ] 首次登录后已修改默认管理员密码。
 - [ ] 管理端已加 IP allowlist、VPN 或 Basic Auth。
 - [ ] Admin、官网与 API 使用 HTTPS。
 - [ ] 每个站点都配置了正式 `allowedOrigins`。
@@ -83,7 +83,7 @@ curl -f https://marku.example.com/embed/v1/marku-embed.js
 
 ## 版本
 
-当前版本：`0.3.1`
+当前版本：`0.4.0`
 
 发布后更新：
 

@@ -36,8 +36,6 @@ cp apps/api/.env.example apps/api/.env
 
 ```dotenv title="apps/api/.env"
 MARKU_JWT_SECRET=至少32位的随机字符串
-MARKU_ADMIN_EMAIL=admin@example.com
-MARKU_ADMIN_PASSWORD=你的管理员密码
 MARKU_IP_HASH_SALT=用于评论IP哈希的随机字符串
 ```
 
@@ -75,10 +73,17 @@ curl http://localhost:36580/healthz
 curl http://localhost:36580/readyz
 ```
 
-## 4. 创建管理员与会话
+## 4. 登录管理后台
 
-首次启动时，API 会使用 `MARKU_ADMIN_EMAIL` 和 `MARKU_ADMIN_PASSWORD`
-创建管理员。打开 `http://localhost:36581` 登录。
+首次启动会在数据库没有任何管理员时创建默认账号：
+
+```text
+账号：admin
+密码：123456
+```
+
+打开 `http://localhost:36581` 登录，然后进入「账号与安全」立即修改账号和密码。
+默认账号只用于首次登录，不会随环境变量变化。
 
 JWT 只保存在当前标签页的 `sessionStorage`，关闭标签页或退出登录后清除。
 

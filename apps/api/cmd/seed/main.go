@@ -54,7 +54,8 @@ func main() {
 		slog.Error("seed initial admin", "error", err)
 		os.Exit(1)
 	} else if created {
-		slog.Info("initial admin created", "email", cfg.Auth.AdminEmail)
+		slog.Warn("default admin created; change the password immediately after login",
+			"username", service.DefaultAdminUsername)
 	}
 
 	demos := []demoSite{

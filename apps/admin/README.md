@@ -35,7 +35,7 @@ pnpm --filter @marku/admin test
 pnpm --filter @marku/admin typecheck
 ```
 
-登录账号由 API 的 `MARKU_ADMIN_EMAIL` 和 `MARKU_ADMIN_PASSWORD` 首次启动时创建。
+首次启动默认管理员为 `admin` / `123456`，登录后请在「账号与安全」中修改。
 JWT 存放在当前标签页的 `sessionStorage`，关闭标签页或退出登录后清除。
 
 ## 环境变量

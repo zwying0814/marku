@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Marku API
-  version: 0.3.1
+  version: 0.4.0
   description: |
     Marku 是面向静态博客的无头动态内容 API，支持多站点隔离、评论审核、
     浏览量统计和点赞。
@@ -199,7 +199,7 @@ components:
           format: uint64
         email:
           type: string
-          format: email
+          description: 管理员登录账号。默认 `admin`。
         nickname:
           type: string
         status:
@@ -221,7 +221,8 @@ components:
       properties:
         email:
           type: string
-          format: email
+          description: 管理员登录账号。首次部署默认为 `admin`。
+          example: admin
         password:
           type: string
           minLength: 1
@@ -243,7 +244,20 @@ components:
           type: string
         newPassword:
           type: string
+    UpdateAdminProfileRequest:
+      type: object
+      required: [currentPassword]
+      properties:
+        currentPassword:
+          type: string
+        username:
+          type: string
+          description: 新登录账号；省略表示不修改。
+          example: owner
+        newPassword:
+          type: string
           minLength: 8
+          description: 新密码；省略表示不修改。
     Site:
       type: object
       properties:
@@ -851,6 +865,36 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /api/v1/admin/auth/profile:
+    patch:
+      tags: [Admin Auth]
+      summary: Update admin username and/or password
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAdminProfileRequest'
+      responses:
+        '200':
+          description: Updated admin
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvelopeBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Admin'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
   /api/v1/admin/overview:
     get:
       tags: [Admin Stats]

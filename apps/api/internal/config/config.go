@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"log/slog"
-	"net/mail"
 	"net/url"
 	"os"
 	"strconv"
@@ -52,10 +51,8 @@ type DBConfig struct {
 }
 
 type AuthConfig struct {
-	JWTSecret     string
-	TokenTTL      time.Duration
-	AdminEmail    string
-	AdminPassword string
+	JWTSecret string
+	TokenTTL  time.Duration
 }
 
 type CORSConfig struct {
@@ -263,10 +260,8 @@ func loadFrom(lookup lookupFunc) (Config, error) {
 			AutoMigrate:     autoMigrate,
 		},
 		Auth: AuthConfig{
-			JWTSecret:     get(lookup, "MARKU_JWT_SECRET", defaultJWTSecret),
-			TokenTTL:      tokenTTL,
-			AdminEmail:    get(lookup, "MARKU_ADMIN_EMAIL", ""),
-			AdminPassword: get(lookup, "MARKU_ADMIN_PASSWORD", ""),
+			JWTSecret: get(lookup, "MARKU_JWT_SECRET", defaultJWTSecret),
+			TokenTTL:  tokenTTL,
 		},
 		CORS: CORSConfig{
 			AllowedOrigins:   splitList(get(lookup, "MARKU_CORS_ALLOWED_ORIGINS", defaultOrigins)),
@@ -354,25 +349,6 @@ func (c *Config) validate() error {
 	if c.Auth.TokenTTL <= 0 {
 		return fmt.Errorf("MARKU_JWT_TTL must be greater than zero")
 	}
-	if (c.Auth.AdminEmail == "") != (c.Auth.AdminPassword == "") {
-		return fmt.Errorf("MARKU_ADMIN_EMAIL and MARKU_ADMIN_PASSWORD must be set together")
-	}
-	if c.Auth.AdminEmail != "" {
-		address, err := mail.ParseAddress(c.Auth.AdminEmail)
-		if err != nil || address.Address != c.Auth.AdminEmail {
-			return fmt.Errorf("MARKU_ADMIN_EMAIL must be a valid email address")
-		}
-		if len(c.Auth.AdminPassword) < 8 {
-			return fmt.Errorf("MARKU_ADMIN_PASSWORD must be at least 8 characters")
-		}
-		if c.Auth.JWTSecret == "" {
-			return fmt.Errorf("MARKU_JWT_SECRET is required when admin credentials are configured")
-		}
-	}
-	if c.IsProduction() && c.Auth.AdminEmail == "" {
-		return fmt.Errorf("MARKU_ADMIN_EMAIL and MARKU_ADMIN_PASSWORD are required in production")
-	}
-
 	if c.CORS.MaxAge <= 0 {
 		return fmt.Errorf("MARKU_CORS_MAX_AGE must be greater than zero")
 	}

@@ -32,6 +32,12 @@ type changePasswordRequest struct {
 	NewPassword     string `json:"newPassword" binding:"required"`
 }
 
+type updateProfileRequest struct {
+	CurrentPassword string `json:"currentPassword" binding:"required"`
+	Username        string `json:"username"`
+	NewPassword     string `json:"newPassword"`
+}
+
 func AdminLogin(services *service.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request loginRequest
@@ -84,6 +90,34 @@ func AdminChangePassword(services *service.Service) gin.HandlerFunc {
 		}
 
 		c.Status(http.StatusNoContent)
+	}
+}
+
+func AdminUpdateProfile(services *service.Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var request updateProfileRequest
+		if err := c.ShouldBindJSON(&request); err != nil {
+			writeBadRequest(c, "invalid request body")
+			return
+		}
+
+		admin := middleware.GetAdmin(c)
+		if admin == nil {
+			response.Abort(c, response.New(http.StatusInternalServerError, response.CodeInternal, "admin context missing"))
+			return
+		}
+
+		updated, err := services.UpdateAdminProfile(admin, service.UpdateAdminProfileInput{
+			CurrentPassword: request.CurrentPassword,
+			Username:        request.Username,
+			NewPassword:     request.NewPassword,
+		})
+		if err != nil {
+			writeServiceError(c, err)
+			return
+		}
+
+		response.OK(c, newAdminResponse(updated))
 	}
 }
 

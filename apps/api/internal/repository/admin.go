@@ -30,6 +30,28 @@ func (s *Store) CreateAdmin(admin *model.Admin) error {
 	return s.db.Create(admin).Error
 }
 
+func (s *Store) CountAdmins() (int64, error) {
+	var count int64
+	if err := s.db.Model(&model.Admin{}).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (s *Store) UpdateAdminProfile(id uint, email, passwordHash string) error {
+	result := s.db.Model(&model.Admin{}).Where("id = ?", id).Updates(map[string]any{
+		"email":         email,
+		"password_hash": passwordHash,
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
 func (s *Store) UpdateAdminPassword(id uint, hash string) error {
 	result := s.db.Model(&model.Admin{}).Where("id = ?", id).Update("password_hash", hash)
 	if result.Error != nil {

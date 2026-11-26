@@ -239,6 +239,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/auth/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update admin username and/or password */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAdminProfileRequest"];
+                };
+            };
+            responses: {
+                /** @description Updated admin */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EnvelopeBase"] & {
+                            data?: components["schemas"]["Admin"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                409: components["responses"]["Conflict"];
+            };
+        };
+        trace?: never;
+    };
     "/api/v1/admin/overview": {
         parameters: {
             query?: never;
@@ -1278,7 +1323,7 @@ export interface components {
         Admin: {
             /** Format: uint64 */
             id?: number;
-            /** Format: email */
+            /** @description 管理员登录账号。默认 `admin`。 */
             email?: string;
             nickname?: string;
             /** @enum {string} */
@@ -1291,7 +1336,10 @@ export interface components {
             updatedAt?: string;
         };
         LoginRequest: {
-            /** Format: email */
+            /**
+             * @description 管理员登录账号。首次部署默认为 `admin`。
+             * @example admin
+             */
             email: string;
             password: string;
         };
@@ -1304,6 +1352,16 @@ export interface components {
         ChangePasswordRequest: {
             currentPassword: string;
             newPassword: string;
+        };
+        UpdateAdminProfileRequest: {
+            currentPassword: string;
+            /**
+             * @description 新登录账号；省略表示不修改。
+             * @example owner
+             */
+            username?: string;
+            /** @description 新密码；省略表示不修改。 */
+            newPassword?: string;
         };
         Site: {
             /** Format: uint64 */

@@ -38,6 +38,17 @@ export const adminApi = {
     })
   },
 
+  updateProfile(input: {
+    currentPassword: string
+    username?: string
+    newPassword?: string
+  }) {
+    return apiRequest<Admin>('/admin/auth/profile', {
+      method: 'PATCH',
+      body: input,
+    })
+  },
+
   overview(range: RangeKey) {
     return apiRequest<AdminOverview>('/admin/overview', {
       query: { range },

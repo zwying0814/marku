@@ -24,7 +24,7 @@ import { extractErrorMessage } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth'
 
 const loginSchema = z.object({
-  email: z.string().trim().min(1, '请输入邮箱').email('邮箱格式不正确'),
+  email: z.string().trim().min(1, '请输入账号').max(64, '账号最多 64 个字符'),
   password: z.string().min(1, '请输入密码'),
 })
 
@@ -157,12 +157,12 @@ export function LoginPage() {
             noValidate
           >
             <div>
-              <Label htmlFor="email">邮箱</Label>
+              <Label htmlFor="email">账号</Label>
               <Input
                 id="email"
-                type="email"
+                type="text"
                 autoComplete="username"
-                placeholder="admin@example.com"
+                placeholder="admin"
                 aria-invalid={Boolean(errors.email)}
                 {...register('email')}
               />
@@ -216,6 +216,11 @@ export function LoginPage() {
               <ArrowRight className="size-4" />
             </Button>
           </form>
+
+          <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs leading-5 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
+            首次部署默认账号为 <code className="font-mono">admin</code>，默认密码为{' '}
+            <code className="font-mono">123456</code>。登录后请立即在「账号与安全」中修改。
+          </p>
 
           <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">

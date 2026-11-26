@@ -12,25 +12,33 @@ import (
 	"marku/api/internal/security"
 )
 
+const (
+	DefaultAdminUsername = "admin"
+	DefaultAdminPassword = "123456"
+)
+
+type UpdateAdminProfileInput struct {
+	CurrentPassword string
+	Username        string
+	NewPassword     string
+}
+
 func (s *Service) SeedAdmin() (bool, error) {
-	email := normalizeEmail(s.auth.AdminEmail)
-	if email == "" {
+	count, err := s.repository.CountAdmins()
+	if err != nil {
+		return false, fmt.Errorf("count admins: %w", err)
+	}
+	if count > 0 {
 		return false, nil
 	}
 
-	if _, err := s.repository.FindAdminByEmail(email); err == nil {
-		return false, nil
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return false, fmt.Errorf("find initial admin: %w", err)
-	}
-
-	hash, err := security.HashPassword(s.auth.AdminPassword)
+	hash, err := security.HashPassword(DefaultAdminPassword)
 	if err != nil {
 		return false, fmt.Errorf("hash initial admin password: %w", err)
 	}
 
 	admin := &model.Admin{
-		Email:        email,
+		Email:        DefaultAdminUsername,
 		PasswordHash: hash,
 		Nickname:     "Admin",
 		Status:       model.AdminStatusActive,
@@ -120,6 +128,59 @@ func (s *Service) ChangePassword(admin *model.Admin, currentPassword, newPasswor
 		return fmt.Errorf("update admin password: %w", err)
 	}
 	admin.PasswordHash = hash
+	return nil
+}
+
+func (s *Service) UpdateAdminProfile(admin *model.Admin, input UpdateAdminProfileInput) (*model.Admin, error) {
+	if admin == nil {
+		return nil, ErrInvalidToken
+	}
+	if !security.CheckPassword(admin.PasswordHash, input.CurrentPassword) {
+		return nil, ErrInvalidCurrentPassword
+	}
+
+	username := normalizeEmail(input.Username)
+	if username == "" {
+		username = admin.Email
+	}
+	if username != admin.Email {
+		if err := validateAdminUsername(username); err != nil {
+			return nil, err
+		}
+		existing, err := s.repository.FindAdminByEmail(username)
+		switch {
+		case err == nil && existing.ID != admin.ID:
+			return nil, ErrUsernameTaken
+		case err != nil && !errors.Is(err, gorm.ErrRecordNotFound):
+			return nil, fmt.Errorf("find admin by username: %w", err)
+		}
+	}
+
+	passwordHash := admin.PasswordHash
+	if input.NewPassword != "" {
+		if len(input.NewPassword) < 8 {
+			return nil, ErrWeakPassword
+		}
+		hash, err := security.HashPassword(input.NewPassword)
+		if err != nil {
+			return nil, fmt.Errorf("hash new password: %w", err)
+		}
+		passwordHash = hash
+	}
+
+	if err := s.repository.UpdateAdminProfile(admin.ID, username, passwordHash); err != nil {
+		return nil, fmt.Errorf("update admin profile: %w", err)
+	}
+
+	admin.Email = username
+	admin.PasswordHash = passwordHash
+	return admin, nil
+}
+
+func validateAdminUsername(username string) error {
+	if username == "" || len([]rune(username)) > 64 || strings.ContainsAny(username, " \t\r\n") {
+		return ErrInvalidAdminUsername
+	}
 	return nil
 }
 

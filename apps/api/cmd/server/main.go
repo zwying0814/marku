@@ -51,21 +51,14 @@ func main() {
 
 	store := repository.New(db)
 	services := service.New(store, cfg)
-	if cfg.Auth.AdminEmail == "" {
-		if !cfg.IsProduction() {
-			slog.Warn("no initial admin configured; set MARKU_ADMIN_EMAIL and MARKU_ADMIN_PASSWORD to enable admin login")
-		}
-	} else {
-		created, err := services.SeedAdmin()
-		if err != nil {
-			slog.Error("seed initial admin", "error", err)
-			os.Exit(1)
-		}
-		if created {
-			slog.Info("initial admin created", "email", cfg.Auth.AdminEmail)
-		} else {
-			slog.Info("initial admin already exists", "email", cfg.Auth.AdminEmail)
-		}
+	created, err := services.SeedAdmin()
+	if err != nil {
+		slog.Error("seed initial admin", "error", err)
+		os.Exit(1)
+	}
+	if created {
+		slog.Warn("default admin created; change the password immediately after login",
+			"username", service.DefaultAdminUsername)
 	}
 
 	engine, err := router.New(cfg, db, services)

@@ -28,6 +28,10 @@ func writeServiceError(c *gin.Context, err error) {
 		response.Abort(c, response.New(http.StatusBadRequest, response.CodeBadRequest, service.ErrInvalidCurrentPassword.Error()))
 	case errors.Is(err, service.ErrWeakPassword):
 		response.Abort(c, response.New(http.StatusBadRequest, response.CodeBadRequest, service.ErrWeakPassword.Error()))
+	case errors.Is(err, service.ErrInvalidAdminUsername):
+		response.Abort(c, response.New(http.StatusBadRequest, response.CodeBadRequest, service.ErrInvalidAdminUsername.Error()))
+	case errors.Is(err, service.ErrUsernameTaken):
+		response.Abort(c, response.New(http.StatusConflict, response.CodeConflict, service.ErrUsernameTaken.Error()))
 	case errors.Is(err, service.ErrCommentNotFound):
 		response.Abort(c, response.New(http.StatusNotFound, response.CodeNotFound, service.ErrCommentNotFound.Error()))
 	case errors.Is(err, service.ErrCommentTooFast):

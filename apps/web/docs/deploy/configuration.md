@@ -11,8 +11,6 @@ outline: [2, 3]
 ```dotenv
 MARKU_ENV=production
 MARKU_JWT_SECRET=至少32位随机字符串
-MARKU_ADMIN_EMAIL=admin@example.com
-MARKU_ADMIN_PASSWORD=首次启动使用的强密码
 MARKU_IP_HASH_SALT=用于评论IP哈希的随机字符串
 ```
 
@@ -20,8 +18,8 @@ MARKU_IP_HASH_SALT=用于评论IP哈希的随机字符串
 
 - `MARKU_JWT_SECRET` 至少 32 字符。
 - `MARKU_IP_HASH_SALT` 生产必填。
-- `MARKU_ADMIN_EMAIL` 与 `MARKU_ADMIN_PASSWORD` 必须同时设置。
-- 管理员密码只在首次创建账号时使用，不会覆盖已有密码。
+- 首次启动会创建默认管理员 `admin` / `123456`，登录后请立即修改。
+- 管理员账号与密码不通过环境变量配置。
 
 ## HTTP
 
@@ -80,8 +78,6 @@ pnpm migrate
 | --- | --- | --- |
 | `MARKU_JWT_SECRET` | 空 | JWT 签名密钥 |
 | `MARKU_JWT_TTL` | `8h` | 登录有效期 |
-| `MARKU_ADMIN_EMAIL` | 空 | 初始管理员邮箱 |
-| `MARKU_ADMIN_PASSWORD` | 空 | 初始管理员密码 |
 
 修改 JWT Secret 会让已有管理员会话立即失效。
 
@@ -152,7 +148,7 @@ MARKU_LOG_FORMAT=json
 API 启动时会校验关键配置。配置错误会直接退出并输出原因。检查顺序建议：
 
 1. JWT Secret 长度。
-2. 管理员邮箱与密码是否成对出现。
+2. 默认管理员密码是否已在首次登录后修改。
 3. 数据库驱动与 DSN。
 4. CORS origin 是否包含协议和端口。
 5. 可信代理是否填写了具体 IP，而不是 `*`。

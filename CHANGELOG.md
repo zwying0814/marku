@@ -4,16 +4,32 @@
 
 ## [Unreleased]
 
-### Added
-
-- `deploy/install.sh`：主机侧安装脚本，支持 install / upgrade / status / logs /
-  backup / uninstall，并自动生成密钥与管理员密码。
-
 ### Planned
 
 - Next.js 接入示例
 - 评论提交幂等键
 - npm 自动化发布工作流
+
+## [0.4.0] - 2026-11-26
+
+### Added
+
+- 首次启动默认创建管理员 `admin` / `123456`，无需任何管理员环境变量。
+- `PATCH /api/v1/admin/auth/profile`：验证当前密码后修改登录账号与密码。
+- Admin「账号与安全」支持同时修改登录账号和密码，修改后当前会话继续有效。
+- 登录页与文档提示默认账号，并要求首次登录后立即修改。
+- `deploy/install.sh`：主机侧安装脚本，支持 install / upgrade / status / logs /
+  backup / uninstall。
+
+### Changed
+
+- 移除 `MARKU_ADMIN_EMAIL` 与 `MARKU_ADMIN_PASSWORD`；管理员不再通过环境变量配置。
+- Docker Compose 与安装脚本不再要求或生成管理员凭据。
+- 管理员登录标识改为通用“账号”，不再强制邮箱格式。
+
+### Security
+
+- 默认密码仅用于首次初始化，部署后应立即在后台修改账号与密码。
 
 ## [0.3.1] - 2026-11-25
 

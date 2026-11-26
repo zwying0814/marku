@@ -9,6 +9,8 @@ var (
 	ErrInvalidToken           = errors.New("invalid or expired token")
 	ErrInvalidCurrentPassword = errors.New("current password is incorrect")
 	ErrWeakPassword           = errors.New("new password must be at least 8 characters")
+	ErrInvalidAdminUsername   = errors.New("invalid admin username")
+	ErrUsernameTaken          = errors.New("admin username is already taken")
 	ErrSiteNotFound           = errors.New("site not found")
 	ErrSlugExists             = errors.New("site slug already exists")
 	ErrInvalidSiteInput       = errors.New("invalid site input")

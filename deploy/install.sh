@@ -4,7 +4,7 @@ set -euo pipefail
 MARKU_DIR="${MARKU_DIR:-/opt/marku}"
 CONF_FILE="${MARKU_DIR}/install.conf"
 ENV_FILE="${MARKU_DIR}/.env"
-DEFAULT_IMAGE="ghcr.io/zwying0814/marku:0.3.1"
+DEFAULT_IMAGE="ghcr.io/zwying0814/marku:0.4.0"
 COMMAND="${1:-install}"
 PURGE="${2:-}"
 
@@ -33,12 +33,6 @@ ensure_env() {
 
 random_secret() {
   openssl rand -hex "$1"
-}
-
-random_password() {
-  local suffix
-  suffix=$(openssl rand -base64 18 | tr -dc 'A-Za-z0-9' | cut -c1-14)
-  printf 'Marku-%s' "$suffix"
 }
 
 need_docker() {
@@ -86,8 +80,6 @@ prepare_env() {
 
   if [ ! -f "$ENV_FILE" ]; then
     NEW_ENV=1
-    ADMIN_EMAIL="${MARKU_ADMIN_EMAIL:-admin@example.com}"
-    ADMIN_PASSWORD="${MARKU_ADMIN_PASSWORD:-$(random_password)}"
     JWT_SECRET="${MARKU_JWT_SECRET:-$(random_secret 48)}"
     IP_SALT="${MARKU_IP_HASH_SALT:-$(random_secret 32)}"
 
@@ -98,8 +90,6 @@ MARKU_DB_DRIVER=sqlite
 MARKU_DB_DSN=/data/marku.db
 MARKU_DB_AUTO_MIGRATE=true
 MARKU_JWT_SECRET=${JWT_SECRET}
-MARKU_ADMIN_EMAIL=${ADMIN_EMAIL}
-MARKU_ADMIN_PASSWORD=${ADMIN_PASSWORD}
 MARKU_IP_HASH_SALT=${IP_SALT}
 MARKU_CORS_ALLOWED_ORIGINS=${MARKU_CORS_ALLOWED_ORIGINS:-}
 MARKU_HTTP_TRUSTED_PROXIES=${MARKU_HTTP_TRUSTED_PROXIES:-127.0.0.1}
@@ -112,8 +102,6 @@ EOF
     ensure_env MARKU_DB_DSN /data/marku.db
     ensure_env MARKU_DB_AUTO_MIGRATE true
     ensure_env MARKU_JWT_SECRET "$(random_secret 48)"
-    ensure_env MARKU_ADMIN_EMAIL "${MARKU_ADMIN_EMAIL:-admin@example.com}"
-    ensure_env MARKU_ADMIN_PASSWORD "$(random_password)"
     ensure_env MARKU_IP_HASH_SALT "$(random_secret 32)"
     ensure_env MARKU_CORS_ALLOWED_ORIGINS "${MARKU_CORS_ALLOWED_ORIGINS:-}"
     ensure_env MARKU_HTTP_TRUSTED_PROXIES "${MARKU_HTTP_TRUSTED_PROXIES:-127.0.0.1}"
@@ -161,14 +149,11 @@ print_result() {
   log "API:      http://<服务器IP>:${PORT}/api/v1"
   log "配置文件: ${ENV_FILE}"
   log "数据卷:   ${VOLUME}"
-  if [ "${NEW_ENV:-0}" = "1" ]; then
-    echo
-    warn "管理员账号（首次安装生成，请立即保存）："
-    printf '  邮箱: %s\n' "${ADMIN_EMAIL}"
-    printf '  密码: %s\n' "${ADMIN_PASSWORD}"
-    warn "密码同时保存在 ${ENV_FILE}，该文件权限为 600。"
-  else
-    log "沿用已有管理员与密钥配置，未重新生成。"
+  echo
+  warn "首次部署默认账号: admin / 123456"
+  warn "登录后请立即在「账号与安全」中修改账号和密码。"
+  if [ "${NEW_ENV:-0}" != "1" ]; then
+    log "已沿用现有配置与数据库；默认密码仅在首次初始化时生效。"
   fi
   echo
 }
@@ -251,7 +236,6 @@ usage() {
   MARKU_VOLUME      数据卷名，默认 marku-data
   MARKU_PORT        宿主机端口，默认 36580
   MARKU_BIND        监听地址，默认 0.0.0.0；反代时可设为 127.0.0.1
-  MARKU_ADMIN_EMAIL / MARKU_ADMIN_PASSWORD
   MARKU_JWT_SECRET / MARKU_IP_HASH_SALT
   MARKU_CORS_ALLOWED_ORIGINS
   MARKU_HTTP_TRUSTED_PROXIES

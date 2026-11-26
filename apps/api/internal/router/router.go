@@ -94,6 +94,7 @@ func New(cfg config.Config, db *gorm.DB, services *service.Service, options ...O
 	admin.Use(middleware.AdminAuth(services))
 	admin.GET("/auth/me", handler.AdminMe())
 	admin.POST("/auth/change-password", handler.AdminChangePassword(services))
+	admin.PATCH("/auth/profile", handler.AdminUpdateProfile(services))
 	admin.GET("/overview", handler.GetAdminOverview(services))
 	admin.GET("/sites", handler.ListSites(services))
 	admin.POST("/sites", handler.CreateSite(services))

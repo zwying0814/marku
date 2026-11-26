@@ -23,10 +23,10 @@ type adminTestApp struct {
 	services *service.Service
 }
 
-const testAdminEmail = "admin@example.com"
+const testAdminEmail = "admin"
 
 var (
-	testAdminPassword = strings.Repeat("p", 16)
+	testAdminPassword = "123456"
 	testNewPassword   = strings.Repeat("n", 16)
 	testWrongPassword = strings.Repeat("w", 16)
 )
@@ -105,6 +105,51 @@ func TestAdminChangePassword(t *testing.T) {
 	}
 
 	login(t, app, testAdminEmail, testNewPassword)
+}
+
+func TestAdminUpdateProfile(t *testing.T) {
+	app := newAdminTestApp(t)
+	token := login(t, app, "admin", "123456")
+
+	headers := authHeaders(token)
+	headers["Content-Type"] = "application/json"
+	updated := perform(app.engine, http.MethodPatch, "/api/v1/admin/auth/profile",
+		strings.NewReader(`{"currentPassword":"123456","username":"owner","newPassword":"OwnerPass12345"}`),
+		headers,
+	)
+	if updated.Code != http.StatusOK {
+		t.Fatalf("update profile status = %d, want 200 (body=%s)", updated.Code, updated.Body.String())
+	}
+
+	var body struct {
+		Data struct {
+			Email string `json:"email"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(updated.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode profile: %v", err)
+	}
+	if body.Data.Email != "owner" {
+		t.Fatalf("username = %q, want owner", body.Data.Email)
+	}
+
+	oldLogin := perform(app.engine, http.MethodPost, "/api/v1/admin/auth/login",
+		strings.NewReader(loginJSON("admin", "123456")),
+		map[string]string{"Content-Type": "application/json"},
+	)
+	if oldLogin.Code != http.StatusUnauthorized {
+		t.Fatalf("old credentials status = %d, want 401", oldLogin.Code)
+	}
+
+	login(t, app, "owner", "OwnerPass12345")
+
+	wrongPassword := perform(app.engine, http.MethodPatch, "/api/v1/admin/auth/profile",
+		strings.NewReader(`{"currentPassword":"wrong","username":"owner2"}`),
+		withJSON(authHeaders(token)),
+	)
+	if wrongPassword.Code != http.StatusBadRequest {
+		t.Fatalf("wrong current password status = %d, want 400", wrongPassword.Code)
+	}
 }
 
 func TestSiteLifecycleAndIsolation(t *testing.T) {
@@ -287,10 +332,8 @@ func newAdminTestAppWithConfig(t *testing.T, mutate func(*config.Config)) *admin
 
 	engine, db, services := newTestApp(t, func(cfg *config.Config) {
 		cfg.Auth = config.AuthConfig{
-			JWTSecret:     strings.Repeat("j", 32),
-			TokenTTL:      time.Hour,
-			AdminEmail:    testAdminEmail,
-			AdminPassword: testAdminPassword,
+			JWTSecret: strings.Repeat("j", 32),
+			TokenTTL:  time.Hour,
 		}
 		if mutate != nil {
 			mutate(cfg)

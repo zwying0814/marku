@@ -2,7 +2,7 @@
 
 Marku 的公共 API，基于 Go、Gin、GORM 和 SQLite。
 
-当前版本 v0.3.1：
+当前版本 v0.4.0：
 
 - 分层目录：`cmd`、`config`、`database`、`handler`、`middleware`、`model`、`repository`、`router`、`service`、`response`
 - 环境变量配置与启动校验
@@ -57,11 +57,10 @@ pnpm build:binary
 
 ```dotenv
 MARKU_JWT_SECRET=<至少 32 位的随机字符串>
-MARKU_ADMIN_EMAIL=admin@example.com
-MARKU_ADMIN_PASSWORD=<至少 8 位的初始密码>
 ```
 
-启动时会自动迁移数据库，并在管理员不存在时创建初始管理员。密码只在首次创建时使用，修改环境变量不会覆盖已有账号密码。
+启动时会自动迁移数据库，并在没有任何管理员时创建默认账号 `admin` / `123456`。
+登录后请在「账号与安全」中修改账号和密码。
 
 如果 JWT Secret 为空，服务仍可启动，但管理员登录返回 `503`。
 
@@ -317,11 +316,7 @@ go run ./cmd/migrate
 完整变量见 `.env.example`。生产环境必须设置：
 
 - `MARKU_JWT_SECRET`：至少 32 个字符
-- `MARKU_ADMIN_EMAIL`
-- `MARKU_ADMIN_PASSWORD`：至少 8 个字符
 - `MARKU_IP_HASH_SALT`：至少 16 个字符
-
-开发环境如果设置了管理员账号，同样必须设置 `MARKU_JWT_SECRET`。
 
 评论相关变量：
 

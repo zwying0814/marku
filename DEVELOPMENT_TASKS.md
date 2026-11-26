@@ -657,12 +657,12 @@ MARKU_HTTP_ADDR=:36580
 MARKU_DB_DRIVER=sqlite
 MARKU_DB_DSN=./data/marku.db
 MARKU_JWT_SECRET=replace-with-a-long-random-secret
-MARKU_ADMIN_EMAIL=admin@example.com
-MARKU_ADMIN_PASSWORD=change-me-on-first-run
 MARKU_IP_HASH_SALT=replace-with-random-salt
 MARKU_COMMENT_MODERATION=pending
 MARKU_RATE_LIMIT_ENABLED=true
 ```
+
+首次启动自动创建默认管理员 `admin` / `123456`，登录后立即修改。
 
 ### `apps/admin/.env.example`
 

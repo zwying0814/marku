@@ -16,8 +16,9 @@ bash install.sh
 - 配置目录：`/opt/marku`（`.env` 与 `install.conf`）
 - 数据卷：`marku-data`
 - 端口：`36580`
-- 镜像：`ghcr.io/zwying0814/marku:0.3.1`
-- 首次安装自动生成 JWT 密钥、IP 盐和管理员密码，并在结束时打印
+- 镜像：`ghcr.io/zwying0814/marku:0.4.0`
+- 首次安装自动生成 JWT 密钥与 IP 盐
+- 默认管理员：`admin` / `123456`，登录后请立即修改
 
 ## 常用命令
 
@@ -45,7 +46,7 @@ MARKU_IMAGE=ghcr.io/zwying0814/marku:0.3.2 bash install.sh upgrade
 MARKU_PORT=36581 MARKU_VOLUME=marku-prod-data bash install.sh
 ```
 
-重复执行 `install` 会沿用已有的 `.env`，不会重新生成管理员密码。
+重复执行 `install` 会沿用已有的 `.env` 与数据库，不会重置账号或密码。
 
 ## 为什么不做进镜像
 

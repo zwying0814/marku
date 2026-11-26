@@ -43,11 +43,9 @@ func TestLoadFromDefaults(t *testing.T) {
 
 func TestLoadFromProduction(t *testing.T) {
 	cfg, err := loadFrom(values(map[string]string{
-		"MARKU_ENV":            EnvProduction,
-		"MARKU_JWT_SECRET":     strings.Repeat("s", 32),
-		"MARKU_ADMIN_EMAIL":    "admin@example.com",
-		"MARKU_ADMIN_PASSWORD": strings.Repeat("p", 12),
-		"MARKU_IP_HASH_SALT":   strings.Repeat("i", 16),
+		"MARKU_ENV":          EnvProduction,
+		"MARKU_JWT_SECRET":   strings.Repeat("s", 32),
+		"MARKU_IP_HASH_SALT": strings.Repeat("i", 16),
 	}))
 	if err != nil {
 		t.Fatalf("load production config: %v", err)
@@ -136,8 +134,6 @@ func TestLoadFromValidationErrors(t *testing.T) {
 		{name: "wildcard credentials", env: map[string]string{"MARKU_CORS_ALLOWED_ORIGINS": "*", "MARKU_CORS_ALLOW_CREDENTIALS": "true"}, want: "credentials"},
 		{name: "origin path", env: map[string]string{"MARKU_CORS_ALLOWED_ORIGINS": "https://example.com/path"}, want: "must not contain a path"},
 		{name: "wildcard proxy", env: map[string]string{"MARKU_HTTP_TRUSTED_PROXIES": "*"}, want: "explicit proxies"},
-		{name: "admin pair", env: map[string]string{"MARKU_ADMIN_EMAIL": "admin@example.com"}, want: "set together"},
-		{name: "admin without jwt", env: map[string]string{"MARKU_ADMIN_EMAIL": "admin@example.com", "MARKU_ADMIN_PASSWORD": strings.Repeat("p", 12)}, want: "MARKU_JWT_SECRET is required when admin credentials are configured"},
 		{name: "short jwt", env: map[string]string{"MARKU_JWT_SECRET": "short"}, want: "at least 16"},
 		{name: "idle exceeds open", env: map[string]string{"MARKU_DB_MAX_IDLE_CONNS": "2"}, want: "MARKU_DB_MAX_IDLE_CONNS"},
 		{name: "zero body limit", env: map[string]string{"MARKU_HTTP_MAX_BODY_BYTES": "0"}, want: "MARKU_HTTP_MAX_BODY_BYTES"},
@@ -146,9 +142,8 @@ func TestLoadFromValidationErrors(t *testing.T) {
 		{name: "invalid comment length", env: map[string]string{"MARKU_COMMENT_MAX_LENGTH": "0"}, want: "MARKU_COMMENT_MAX_LENGTH"},
 		{name: "invalid view batch", env: map[string]string{"MARKU_VIEW_MAX_BATCH_PATHS": "0"}, want: "MARKU_VIEW_MAX_BATCH_PATHS"},
 		{name: "production without jwt", env: map[string]string{"MARKU_ENV": EnvProduction}, want: "MARKU_JWT_SECRET"},
-		{name: "production without admin", env: map[string]string{"MARKU_ENV": EnvProduction, "MARKU_JWT_SECRET": strings.Repeat("s", 32)}, want: "MARKU_ADMIN_EMAIL"},
-		{name: "production short jwt", env: map[string]string{"MARKU_ENV": EnvProduction, "MARKU_JWT_SECRET": "short", "MARKU_ADMIN_EMAIL": "admin@example.com", "MARKU_ADMIN_PASSWORD": strings.Repeat("p", 12)}, want: "at least 32"},
-		{name: "production without ip salt", env: map[string]string{"MARKU_ENV": EnvProduction, "MARKU_JWT_SECRET": strings.Repeat("s", 32), "MARKU_ADMIN_EMAIL": "admin@example.com", "MARKU_ADMIN_PASSWORD": strings.Repeat("p", 12)}, want: "MARKU_IP_HASH_SALT"},
+		{name: "production short jwt", env: map[string]string{"MARKU_ENV": EnvProduction, "MARKU_JWT_SECRET": "short"}, want: "at least 32"},
+		{name: "production without ip salt", env: map[string]string{"MARKU_ENV": EnvProduction, "MARKU_JWT_SECRET": strings.Repeat("s", 32)}, want: "MARKU_IP_HASH_SALT"},
 	}
 
 	for _, test := range tests {

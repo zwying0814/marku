@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- `deploy/install.sh`：主机侧安装脚本，支持 install / upgrade / status / logs /
+  backup / uninstall，并自动生成密钥与管理员密码。
+
 ### Planned
 
 - Next.js 接入示例

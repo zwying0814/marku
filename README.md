@@ -174,6 +174,17 @@ docker run -d --name marku --restart unless-stopped \
   -v marku-data:/data ghcr.io/zwying0814/marku:0.3.1
 ```
 
+也可以用仓库内的维护脚本完成安装、升级、备份和卸载：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zwying0814/marku/main/deploy/install.sh -o install.sh
+bash install.sh
+bash install.sh status
+bash install.sh backup
+```
+
+详见 `deploy/README.md`。
+
 默认地址：
 
 - API / Admin：`http://localhost:36580`

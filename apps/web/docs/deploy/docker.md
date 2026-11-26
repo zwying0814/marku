@@ -49,6 +49,26 @@ docker pull ghcr.io/zwying0814/marku:0.3.1
 GitHub Packages 默认是私有包。改成 Public 后可直接拉取；保持私有则需要在
 服务器执行 `docker login ghcr.io`，使用具备 `read:packages` 的 PAT。
 
+## 安装脚本
+
+仓库提供主机侧维护脚本，封装了生成配置、拉取镜像、启动、升级和备份：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zwying0814/marku/main/deploy/install.sh -o install.sh
+less install.sh
+bash install.sh
+```
+
+```bash
+bash install.sh status
+bash install.sh backup
+bash install.sh upgrade
+bash install.sh uninstall
+```
+
+脚本默认使用 `/opt/marku`、`marku-data` 数据卷和 `36580` 端口，可用
+`MARKU_PORT`、`MARKU_VOLUME`、`MARKU_IMAGE`、`MARKU_BIND` 等环境变量覆盖。
+
 默认端口：
 
 | 服务 | 地址 |

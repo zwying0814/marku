@@ -1,10 +1,10 @@
 ---
-title: v0.4 发布检查
+title: v0.3 发布检查
 description: 发布前验证、部署步骤与回滚预案。
 outline: [2, 3]
 ---
 
-# v0.4 发布检查
+# v0.3 发布检查
 
 ## 发布前
 
@@ -83,7 +83,7 @@ curl -f https://marku.example.com/embed/v1/marku-embed.js
 
 ## 版本
 
-当前版本：`0.4.0`
+当前版本：`0.3.2`
 
 发布后更新：
 

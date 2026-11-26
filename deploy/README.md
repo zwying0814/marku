@@ -16,7 +16,7 @@ bash install.sh
 - 配置目录：`/opt/marku`（`.env` 与 `install.conf`）
 - 数据卷：`marku-data`
 - 端口：`36580`
-- 镜像：`ghcr.io/zwying0814/marku:0.4.0`
+- 镜像：`ghcr.io/zwying0814/marku:0.3.2`
 - 首次安装自动生成 JWT 密钥与 IP 盐
 - 默认管理员：`admin` / `123456`，登录后请立即修改
 

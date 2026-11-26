@@ -43,7 +43,7 @@ ghcr.io/zwying0814/marku:latest
 服务器可以直接拉取，不需要在本地构建：
 
 ```bash
-docker pull ghcr.io/zwying0814/marku:0.4.0
+docker pull ghcr.io/zwying0814/marku:0.3.2
 ```
 
 GitHub Packages 默认是私有包。改成 Public 后可直接拉取；保持私有则需要在

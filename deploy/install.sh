@@ -4,7 +4,7 @@ set -euo pipefail
 MARKU_DIR="${MARKU_DIR:-/opt/marku}"
 CONF_FILE="${MARKU_DIR}/install.conf"
 ENV_FILE="${MARKU_DIR}/.env"
-DEFAULT_IMAGE="ghcr.io/zwying0814/marku:0.4.0"
+DEFAULT_IMAGE="ghcr.io/zwying0814/marku:0.3.2"
 COMMAND="${1:-install}"
 PURGE="${2:-}"
 

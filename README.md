@@ -2,7 +2,7 @@
 
 Marku 是一个面向静态博客的无头动态内容扩展平台。博客保持原有的构建与部署方式，通过公共 API 或可选官方组件接入评论、浏览量和点赞。
 
-当前版本 **v0.4.0**。API 已具备管理员 JWT、站点 CRUD、Site Key 管理、多站点隔离、评论审核与楼中楼、浏览量、点赞、聚合统计、OpenAPI、共享类型与 Docker 部署。Admin 与 `/embed/v1` 组件通过 `go:embed` 内置于官方二进制；官网与文档站（`apps/web`）独立部署，不再进入镜像。首次启动默认管理员为 `admin` / `123456`，登录后可自行修改。
+当前版本 **v0.3.2**。API 已具备管理员 JWT、站点 CRUD、Site Key 管理、多站点隔离、评论审核与楼中楼、浏览量、点赞、聚合统计、OpenAPI、共享类型与 Docker 部署。Admin 与 `/embed/v1` 组件通过 `go:embed` 内置于官方二进制；官网与文档站（`apps/web`）独立部署，不再进入镜像。首次启动默认管理员为 `admin` / `123456`，登录后可自行修改。
 
 ## 架构
 
@@ -169,10 +169,10 @@ docker compose up -d --build
 也可以直接使用 GHCR 多架构镜像（`v*` tag 自动发布）：
 
 ```bash
-docker pull ghcr.io/zwying0814/marku:0.4.0
+docker pull ghcr.io/zwying0814/marku:0.3.2
 docker run -d --name marku --restart unless-stopped \
   --env-file .env -p 127.0.0.1:36580:36580 \
-  -v marku-data:/data ghcr.io/zwying0814/marku:0.4.0
+  -v marku-data:/data ghcr.io/zwying0814/marku:0.3.2
 ```
 
 也可以用仓库内的维护脚本完成安装、升级、备份和卸载：
@@ -243,7 +243,7 @@ marku/
 - M9 集成包：`@marku/client`、`@marku/embed` 与 `/embed/v1` 分发（npm 发布待定）
 - v0.3.0：客户端与组件包发布、官网拆分
 - v0.3.1：修复镜像内缺少 `/embed/v1`，新增 GHCR 多架构镜像发布
-- v0.4.0：默认管理员 `admin` / `123456`，支持登录后修改账号与密码
+- v0.3.2：默认管理员 `admin` / `123456`，支持登录后修改账号与密码
 
 详细任务见 `DEVELOPMENT_TASKS.md`。
 
